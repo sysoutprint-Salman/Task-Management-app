@@ -9,12 +9,7 @@ import javafx.stage.Stage;
 public class FXTest extends Application {
     @Override
     public void start(Stage stage) throws Exception {
-        Button btn = new Button("Hello JavaFX");
-        btn.setOnAction(event -> System.out.println("Button Clicked!"));
-
         StackPane root = new StackPane();
-        root.getChildren().add(btn);
-
         Scene scene = new Scene(root, 400, 300);
         stage.setTitle("JavaFX Test");
         stage.setScene(scene);
