@@ -1,4 +1,11 @@
-package GPT;
+package JavaFX;
+
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.net.URI;
@@ -38,6 +45,9 @@ public class GPTConnection {
             Thread.currentThread().interrupt();  // Restore interrupted status
         }
 }
+
+
+
 
 }
 

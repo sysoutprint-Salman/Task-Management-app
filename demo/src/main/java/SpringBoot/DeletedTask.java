@@ -6,19 +6,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-@Entity //I.E table in a database
-@Table(name = "tasks")
-@Data // Generates getters, setters, toString, equals, and hashCode
-@NoArgsConstructor // Generates a no-args constructor
-@AllArgsConstructor // Generates an all-args constructor
-public class Task {
+@Entity
+@Table(name = "deletedTasks")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class DeletedTask {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private Long taskId;
     private String title;
     private LocalDate date;
     private String description;
-
+    private LocalDateTime deletedDate;
 
 }
