@@ -3,9 +3,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.FXTest">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.Controller">
    <children>
-      <VBox fx:id="root" layoutX="14.0" layoutY="38.0" prefHeight="350.0" prefWidth="176.0" />
+      <VBox fx:id="mainTaskVbox" layoutX="14.0" layoutY="40.0" prefHeight="345.0" prefWidth="200.0" />
       <MenuBar layoutY="1.0" prefHeight="26.0" prefWidth="600.0">
         <menus>
           <Menu mnemonicParsing="false" text="Create Task">
@@ -21,7 +21,7 @@
           </Menu>
           <Menu mnemonicParsing="false" text="GPT">
             <items>
-              <MenuItem fx:id="gptMenuItem" mnemonicParsing="false" text="Chat with AI assistant" />
+              <MenuItem fx:id="gptMenuItem" mnemonicParsing="false" onAction="#switchToGPT" text="Chat with AI assistant" />
             </items>
           </Menu>
         </menus>
