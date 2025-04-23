@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.Controller">
+   <children>
+       <MenuBar prefHeight="26.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+           <menus>
+               <Menu mnemonicParsing="false" text="Create Task">
+                   <items>
+                       <MenuItem fx:id="mainTasks" mnemonicParsing="false" text="View Tasks" />
+                       <MenuItem mnemonicParsing="false" text="Close" />
+                   </items>
+               </Menu>
+               <Menu mnemonicParsing="false" text="Deleted Tasks">
+                   <items>
+                       <MenuItem fx:id="DTmenuItem" mnemonicParsing="false" onAction="#switchToDT" text="Show Deleted Tasks" />
+                   </items>
+               </Menu>
+               <Menu mnemonicParsing="false" text="GPT">
+                   <items>
+                       <MenuItem fx:id="gptMenuItem" mnemonicParsing="false" onAction="#switchToGPT" text="Chat with AI assistant" />
+                   </items>
+               </Menu>
+           </menus>
+       </MenuBar>
+      <BorderPane layoutX="14.0" layoutY="38.0" prefHeight="350.0" prefWidth="572.0">
+         <bottom>
+            <HBox fx:id="messageAreaHbox" alignment="CENTER" prefHeight="71.0" prefWidth="572.0" spacing="10.0" BorderPane.alignment="CENTER">
+               <children>
+                  <TextField fx:id="userTextField" prefHeight="26.0" prefWidth="470.0" promptText="Ask something to the AI assistant." />
+                  <Button fx:id="sendButton" mnemonicParsing="false" onAction="#onSendMessage" text="Send" />
+               </children>
+               <BorderPane.margin>
+                  <Insets />
+               </BorderPane.margin>
+            </HBox>
+         </bottom>
+         <center>
+            <ScrollPane fx:id="messageScrollPane" fitToHeight="true" fitToWidth="true" prefHeight="247.0" prefWidth="572.0" BorderPane.alignment="CENTER">
+              <content>
+                  <VBox fx:id="chatBoxVbox" alignment="CENTER" prefHeight="263.0" prefWidth="571.0" />
+              </content>
+            </ScrollPane>
+         </center></BorderPane>
+   </children>
+</AnchorPane>

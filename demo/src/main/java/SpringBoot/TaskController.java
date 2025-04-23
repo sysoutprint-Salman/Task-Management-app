@@ -49,7 +49,6 @@ public class TaskController {
         try{
             Task task = taskService.getTaskById(id);
             DeletedTask deletedTask = new DeletedTask();
-            deletedTask.setTaskId(task.getId());
             deletedTask.setTitle(task.getTitle());
             deletedTask.setDescription(task.getDescription());
             deletedTask.setDate(task.getDate());

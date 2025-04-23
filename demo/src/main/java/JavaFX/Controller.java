@@ -4,6 +4,7 @@ package JavaFX;
 import SpringBoot.DeletedTask;
 import SpringBoot.Task;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javafx.application.Platform;
@@ -20,6 +21,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
@@ -32,11 +34,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Controller {
     @FXML
-    VBox deletedTaskVBox;
+    public VBox DTvbox;
     @FXML
     public VBox mainTaskVbox;
     public ScrollPane scrollPane;
@@ -47,6 +50,10 @@ public class Controller {
     public Button sendButton;
     public TextField userTextField;
     public MenuBar gptMenuBar;
+    public ScrollPane DTscrollpane;
+    public Label DTlabel;
+    public MenuItem DTmenuItem;
+
     @FXML //This annotation specifies that this is a controller method.
     public void createTask(){
         Stage createTaskStage = new Stage();
@@ -155,8 +162,8 @@ public class Controller {
             ex.printStackTrace();
         }
     }
-    public void DELETE(Long id){
-        String url = "http://localhost:8080/tasks/" + id;
+    public void DELETE(Long id, String address){
+        String url = "http://localhost:8080/" + address + "/" + id;
 
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).DELETE().build();
 
@@ -167,9 +174,9 @@ public class Controller {
             System.out.println("Response body: " + response.body());
 
             if (response.statusCode() == 200) {
-                System.out.println("Task deleted successfully.");
+                System.out.println("Deletion successfully.");
             } else {
-                System.out.println("Failed to delete task.");
+                System.out.println("Failed to delete.");
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -180,22 +187,42 @@ public class Controller {
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/tasks")).GET().build();
+                    .uri(URI.create("http://localhost:8080/deleted_tasks")).GET().build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             String json = response.body();
             ObjectMapper mapper = new ObjectMapper(); //Jackson
-            List<DeletedTask> deletedTasks = mapper.readValue(json, new TypeReference<List<DeletedTask>>() {});
-            //Mapping json from the GET request to an arraylist
+            mapper.registerModule(new JavaTimeModule());
+            JsonNode node = mapper.readTree(json);
+            List<DeletedTask> deletedTasks = new ArrayList<>();
 
-            //This will get from the DB and display each task from the deletedTask DB and will create a new titledpane for each.
-            for (DeletedTask task: deletedTasks){
+            if (node.isArray()){
+                deletedTasks = mapper.readValue(json, new TypeReference<List<DeletedTask>>() {});
+            } else if (node.isObject()) {
+                DeletedTask deletedTask = mapper.treeToValue(node,DeletedTask.class);
+                deletedTasks.add(deletedTask);
+            }
+
+            for (DeletedTask dTask: deletedTasks){
                 TitledPane deletedTaskPane = new TitledPane();
-                deletedTaskPane.setText(task.getTitle());
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
-                VBox content = new VBox(new Label("Due: " + formatter.format(task.getDate())), new Label(task.getDescription()));
+                deletedTaskPane.setText("Deleted: " + dTask.getTitle());
+                deletedTaskPane.setExpanded(false);
+                deletedTaskPane.setPrefWidth(500);
+                //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
+                VBox content = new VBox(new Label("Due: " + dTask.getDate()), new Label(dTask.getDescription()));
                 deletedTaskPane.setContent(content);
-                deletedTaskPane.setUserData(task.getId());
-                deletedTaskVBox.getChildren().add(deletedTaskPane);
+                deletedTaskPane.setUserData(dTask.getId());
+                DTvbox.getChildren().add(deletedTaskPane);
+                ContextMenu rightClickMenu = new ContextMenu();
+                MenuItem recoverItem = new MenuItem("Recover Task");
+                rightClickMenu.getItems().add(recoverItem);
+                deletedTaskPane.setOnContextMenuRequested(e -> {
+                    rightClickMenu.show(deletedTaskPane, e.getScreenX(), e.getSceneY());
+                    recoverItem.setOnAction(f -> {
+                        DELETE(dTask.getId(),"deleted-tasks");
+                        POST(dTask.getTitle(), dTask.getDate(), dTask.getDescription());
+                        DTvbox.getChildren().remove(deletedTaskPane);
+                    });
+                });
             }
 
 
@@ -212,15 +239,22 @@ public class Controller {
             String json = response.body();
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
-            List<Task> Tasks = mapper.readValue(json, new TypeReference<List<Task>>() {});
+            JsonNode node = mapper.readTree(json);
+            List<Task> tasks = new ArrayList<>();
 
-            for (Task task: Tasks){
+            if (node.isArray()){
+                tasks = mapper.readValue(json, new TypeReference<List<Task>>() {});
+            } else if (node.isObject()) {
+                Task task = mapper.treeToValue(node,Task.class);
+                tasks.add(task);
+            }
+
+            for (Task task: tasks){
                 TitledPane createdTaskPane = new TitledPane();
-                createdTaskPane.setPrefSize(200,200);
-                /*createdTaskPane.setOnDragOver(e -> {
-                    createdTaskPane.setVisible(false);
-                });*/
+                //createdTaskPane.setPrefSize(200,200);
                 createdTaskPane.setText(task.getTitle());
+                createdTaskPane.setExpanded(false);
+                createdTaskPane.setPrefWidth(500);
                 //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
                 VBox content = new VBox(new Label("Due: " + task.getDate()), new Label(task.getDescription()));
                 createdTaskPane.setContent(content);
@@ -238,13 +272,10 @@ public class Controller {
                     });
                     deleteItem.setOnAction(f ->{
                         mainTaskVbox.getChildren().remove(createdTaskPane);
+                        DELETE(task.getId(), "tasks");
                     });
                 });
             }
-            /*ScrollPane scrollPane = new ScrollPane(mainTaskVbox);
-            mainTaskVbox.setSpacing(10);
-            mainTaskVbox.setPrefWidth(Region.USE_COMPUTED_SIZE);
-            scrollPane.setFitToWidth(true);*/
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -323,13 +354,10 @@ public class Controller {
     }
 
     public void switchToGPT(){
-        Platform.runLater(() -> {
             gptMenuItem.setOnAction(e -> {
                 try {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/showGPT.fxml"));
-                    Parent root = loader.load(); //Contains all UI components from loader.
-                    Controller controller = loader.getController();
-                    controller.speakToGPT();
+                    Parent root = loader.load();
                     Stage stage = (Stage) ((MenuItem) e.getSource()).getParentPopup().getOwnerWindow();
                     //This allows FX to trace back to the window (stage).
                     Scene scene = new Scene(root);
@@ -338,21 +366,68 @@ public class Controller {
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-            });
 
+            });
+    }
+    @FXML
+    public void switchToDT(){
+        DTmenuItem.setOnAction(e -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/showDeletedTasks.fxml"));
+                Parent root = loader.load();
+                Controller controller = loader.getController();
+                Stage stage = (Stage) ((MenuItem) e.getSource()).getParentPopup().getOwnerWindow();
+                Scene scene = new Scene(root);
+                controller.GETDeletedTasks();
+                stage.setScene(scene);
+                stage.show();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         });
     }
 
-    public void speakToGPT(){
-        sendButton.setOnAction(event -> {
-            Label userResponse = new Label(userTextField.getText());
-            userResponse.setWrapText(true);
-            chatBoxVbox.getChildren().add(new Label());
-            Label gptResponse = new Label("I don't know - GPT");
-            gptResponse.setWrapText(true);
-            chatBoxVbox.getChildren().addAll(userResponse, gptResponse);
+    public void speakToGPT(String userPrompt){
+        sendButton.setOnAction(e -> {
+            String gptKey = System.getenv("gptKey");
+            String content = String.format(
+                    "{\"role\":\"assistant\",\"content\":\"%s\"}",
+                    userPrompt
+            );
+            String body = String.format("""
+             {
+             "model": "gpt-4o-mini",
+              "messages": [%s]
+            }""", content);
 
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.openai.com/v1/chat/completions"))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + gptKey)
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+            HttpClient client = HttpClient.newHttpClient();
+            //HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            try {
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                //System.out.println(response.body());
+                String json = response.body();
+                JSONObject gptJson = new JSONObject(json);
+                JSONObject innerJson = gptJson.getJSONArray("choices").getJSONObject(0).getJSONObject("message");
+                String contentString = innerJson.getString("content");
+                Label gptResponseLabel = new Label(contentString + " - GPT");
+                gptResponseLabel.setWrapText(true);
+                chatBoxVbox.getChildren().add(gptResponseLabel);
+
+            } catch (InterruptedException | IOException ex) {
+                System.err.println("Request was interrupted: " + ex.getMessage());
+                Thread.currentThread().interrupt();  // Restore interrupted status
+            }
         });
-        //This method will hook up to my GPT api.
+    }
+    @FXML
+    private void onSendMessage() {
+        String prompt = userTextField.getText();
+        speakToGPT(prompt);
     }
 }
