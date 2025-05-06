@@ -45,8 +45,9 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}") //DELETE request
-    public ResponseEntity<?> deleteTask(@PathVariable Long id) {
+    public ResponseEntity<?> deleteTask(@PathVariable Long id, @RequestParam(defaultValue = "true") boolean archive) {
         try{
+            if (archive){
             Task task = taskService.getTaskById(id);
             DeletedTask deletedTask = new DeletedTask();
             deletedTask.setTitle(task.getTitle());
@@ -55,7 +56,9 @@ public class TaskController {
             deletedTask.setDeletedDate(LocalDateTime.now());
             deletedTaskService.insertDeletedTask(deletedTask);
             taskService.deleteTask(id);
-            return ResponseEntity.ok("Task deleted successfully.");
+            return ResponseEntity.ok("Task sent to deleted tasks successfully.");}
+            else{taskService.deleteTask(id);
+                return ResponseEntity.ok("Task deleted successfully.");}
         } catch (RuntimeException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Task couldn't be deleted with id: " + id);
         }

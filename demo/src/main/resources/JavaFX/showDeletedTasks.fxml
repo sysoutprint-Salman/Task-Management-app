@@ -8,14 +8,14 @@
     <children>
         <ScrollPane fx:id="deletedScroll" fitToHeight="true" fitToWidth="true" layoutX="138.0" layoutY="65.0" prefHeight="320.0" prefWidth="325.0" vbarPolicy="NEVER" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="138.0" AnchorPane.rightAnchor="137.0" AnchorPane.topAnchor="65.0">
             <content>
-                <VBox fx:id="DTvbox" alignment="CENTER" prefHeight="361.0" prefWidth="566.0" spacing="10.0" />
+                <VBox fx:id="DTvbox" alignment="TOP_LEFT" prefHeight="361.0" prefWidth="566.0" spacing="10.0" />
             </content>
         </ScrollPane>
         <MenuBar prefHeight="26.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <menus>
-                <Menu mnemonicParsing="false" text="Create Task">
+                <Menu mnemonicParsing="false" text="Tasks">
                     <items>
-                        <MenuItem fx:id="mainTasks" mnemonicParsing="false" text="View Tasks" />
+                        <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
                         <MenuItem mnemonicParsing="false" text="Close" />
                     </items>
                 </Menu>
@@ -24,7 +24,7 @@
                         <MenuItem fx:id="DTmenuItem" mnemonicParsing="false" onAction="#switchToDT" text="Show Deleted Tasks" />
                     </items>
                 </Menu>
-                <Menu mnemonicParsing="false" text="GPT">
+                <Menu mnemonicParsing="false" text="AI Chat">
                     <items>
                         <MenuItem fx:id="gptMenuItem" mnemonicParsing="false" onAction="#switchToGPT" text="Chat with AI assistant" />
                     </items>
