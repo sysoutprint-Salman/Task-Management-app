@@ -23,14 +23,15 @@ public class TaskUI extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/main.fxml"));
+            //FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/main.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/notebook.fxml"));
             Parent root = loader.load(); //Holds all the UI components from loader.
             Controller controller = loader.getController();
             Scene scene = new Scene(root);
             primaryStage.setTitle("Task Management App");
             primaryStage.setScene(scene);
             primaryStage.show();
-            controller.GETTasks();
+            controller.GETNotebooks();
         } catch (Exception e) {
             e.printStackTrace();
         }

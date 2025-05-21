@@ -24,6 +24,11 @@
                        <MenuItem fx:id="gptMenuItem" mnemonicParsing="false" onAction="#switchToGPT" text="Chat with AI assistant" />
                    </items>
                </Menu>
+               <Menu mnemonicParsing="false" text="Notebook">
+                   <items>
+                       <MenuItem fx:id="viewNotebook" mnemonicParsing="false" onAction="#switchToNotebook" text="View Notebook" />
+                   </items>
+               </Menu>
            </menus>
        </MenuBar>
       <BorderPane layoutX="14.0" layoutY="38.0" prefHeight="350.0" prefWidth="572.0" AnchorPane.bottomAnchor="11.600000000000023" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="38.0">
