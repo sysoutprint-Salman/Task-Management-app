@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="431.0" prefWidth="651.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.FX">
+    <MenuBar prefHeight="26.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <menus>
+            <Menu mnemonicParsing="false" text="Tasks">
+                <items>
+                    <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
+                    <MenuItem mnemonicParsing="false" text="Close" />
+                </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Deleted Tasks">
+                <items>
+                    <MenuItem fx:id="DTmenuItem" mnemonicParsing="false" onAction="#switchToDT" text="Show Deleted Tasks" />
+                </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="AI Chat">
+                <items>
+                    <MenuItem fx:id="gptMenuItem" mnemonicParsing="false" onAction="#switchToGPT" text="Chat with AI assistant" />
+                </items>
+            </Menu>
+         <Menu mnemonicParsing="false" text="Notebook">
+           <items>
+             <MenuItem fx:id="newTabsItem" mnemonicParsing="false" onAction="#createNewTab" text="New Tab" />
+           </items>
+         </Menu>
+        </menus>
+    </MenuBar>
+   <BorderPane layoutX="15.0" layoutY="35.0" prefHeight="350.0" prefWidth="569.0" AnchorPane.bottomAnchor="14.600000000000023" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.399999999999977" AnchorPane.topAnchor="35.0">
+      <left>
+         <ScrollPane fx:id="tabsScrollPane" fitToHeight="true" fitToWidth="true" prefHeight="350.0" prefWidth="169.0" BorderPane.alignment="CENTER">
+            <content>
+               <VBox fx:id="tabsVbox" />
+            </content>
+            <BorderPane.margin>
+               <Insets right="10.0" />
+            </BorderPane.margin>
+         </ScrollPane>
+      </left>
+      <center>
+         <ScrollPane fx:id="notebookScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="350.0" prefWidth="401.0" vbarPolicy="NEVER" BorderPane.alignment="CENTER" />
+      </center>
+   </BorderPane>
+   <Pane fx:id="savedPane" layoutX="585.0" layoutY="1.0" prefHeight="40.0" prefWidth="65.0" visible="false" AnchorPane.bottomAnchor="390.0" AnchorPane.leftAnchor="585.0" AnchorPane.rightAnchor="0.4000000000000057" AnchorPane.topAnchor="1.0">
+      <children>
+         <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#08e11d" height="40.0" stroke="BLACK" strokeType="INSIDE" width="65.0" />
+         <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="38.0" prefWidth="65.0" text="Saved" textFill="WHITE">
+            <font>
+               <Font size="15.0" />
+            </font>
+         </Label>
+      </children>
+   </Pane>
+
+</AnchorPane>

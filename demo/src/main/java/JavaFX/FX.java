@@ -3,18 +3,9 @@ package JavaFX;
 
 import SpringBoot.DeletedTask;
 import SpringBoot.Notebook;
-import SpringBoot.NotebookDTO;
 import SpringBoot.Task;
-import ch.qos.logback.core.joran.conditional.IfAction;
-import ch.qos.logback.core.util.TimeUtil;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -25,35 +16,25 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.json.JSONObject;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.sql.Timestamp;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.time.Instant;
-import java.util.concurrent.*;
 
 
-public class Controller {
+public class FX {
     @FXML
     public VBox DTvbox;
     @FXML
@@ -70,6 +51,7 @@ public class Controller {
     public Label DTlabel;
     public MenuItem DTmenuItem;
     public MenuItem mainTasks;
+    public MenuItem viewNotebook;
     public String prompt;
     public MenuItem newTabsItem;
     public ScrollPane tabsScrollPane, notebookScrollPane;
@@ -84,7 +66,7 @@ public class Controller {
     private final ObjectMapper mapper = new ObjectMapper();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> scheduledFuture;
-
+    private final HTTPHandler httpHandler = new HTTPHandler();
 
 
     @FXML
@@ -122,7 +104,7 @@ public class Controller {
                         "{\"title\":\"%s\", \"date\":\"%s\", \"description\":\"%s\"}",
                         title, date != null ? date.toString() : "", description
                 );
-                POST("tasks", taskJson);
+                httpHandler.POST("tasks", taskJson);
             } else {return;}
             try {
                 Thread.sleep(300);
@@ -141,59 +123,33 @@ public class Controller {
         createTaskStage.setScene(createTaskScene);
         createTaskStage.show();
     }
-    public void POST(String path, String JSON) {
-        try {
-            URL url = new URL("http://localhost:8080/");
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url + path))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(JSON))
-                    .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println(response.statusCode() == 200 ? "Successfully posted." : "Failed to post.");
-        } catch (Exception ex) {
-            ex.printStackTrace();
+    public void dummyTasks(){
+        for (int i = 1; i <= 3; i++) {
+            RadioButton radio = new RadioButton();
+            TitledPane createdTaskPane = new TitledPane();
+            createdTaskPane.setText("Dummy task " + i);
+            createdTaskPane.setExpanded(false);
+            createdTaskPane.setPrefWidth(500);
+            //createdTaskPane.setStyle("-fx-collapsible: false;");
+            createdTaskPane.setGraphic(radio);
+            Button dateButton  = new Button("Due: Whenever" );
+            TextArea descriptionArea =  new TextArea("This is a test description");
+            descriptionArea.setPrefSize(20,20);
+            descriptionArea.setWrapText(true);
+            VBox content = new VBox(dateButton, descriptionArea);
+            descriptionArea.textProperty().addListener((obs, oldText, newText) -> {
+                descriptionArea.setPrefHeight(
+                        descriptionArea.getFont().getSize() * (descriptionArea.getParagraphs().size() + 1) + 20
+                );
+            });
+            createdTaskPane.setContent(content);
+            mainTaskVbox.getChildren().add(createdTaskPane);
         }
-    }
-    public void DELETE(Long id, String path, String archive) {
-        String url = "http://localhost:8080/" + path + "/" + id + "?archive=".concat(archive);
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).DELETE().build();
-        HttpClient client = HttpClient.newHttpClient();
-        try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() == 200) {
-                System.out.println("Response body: " + response.body());
-            } else {System.out.println("Failed to delete.");}
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-    public <T> List<T> GET (String path, Class<T> objectType){
-        try{
-            String url = "http://localhost:8080/" + path ;
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url)).GET().build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            String json = response.body();
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            JsonNode rootNode = mapper.readTree(json);
-            if (rootNode.isArray()) {
-                return mapper.readValue(json, mapper.getTypeFactory().constructCollectionType(List.class, objectType));
-            } else if (rootNode.isObject()) {
-                T singleObject = mapper.treeToValue(rootNode, objectType);
-                return List.of(singleObject);
-            }
-        }catch(IOException | InterruptedException e){
-            e.printStackTrace();
-        }   return Collections.emptyList();
     }
     public void GETDeletedTasks() {
         try {
             DTvbox.getChildren().clear();
-            List<DeletedTask> deletedTasks = GET("deleted-tasks", DeletedTask.class);
+            List<DeletedTask> deletedTasks = httpHandler.GET("deleted-tasks", DeletedTask.class);
 
             for (DeletedTask dTask : deletedTasks) {
                 TitledPane deletedTaskPane = new TitledPane();
@@ -216,7 +172,7 @@ public class Controller {
                 rightClickMenu.getItems().add(recoverItem);
                 recoverItem.setOnAction(f -> {
                     recoverItem.setDisable(true);
-                    DELETE(dTask.getId(), "deleted-tasks", "true");
+                    httpHandler.DELETE(dTask.getId(), "deleted-tasks", "true");
                     DTvbox.getChildren().remove(deletedTaskPane);
                 });
                 deletedTaskPane.setContextMenu(rightClickMenu);
@@ -227,7 +183,7 @@ public class Controller {
     }
     public void GETTasks() {
         try {
-            List<Task> tasks = GET("tasks", Task.class);
+            List<Task> tasks = httpHandler.GET("tasks", Task.class);
             tasks.forEach((task -> {
                 TitledPane createdTaskPane = new TitledPane();
                 //createdTaskPane.setPrefSize(200,200);
@@ -251,7 +207,7 @@ public class Controller {
                 createdTaskPane.setOnContextMenuRequested(e -> {
                     rightClickMenu.show(createdTaskPane, e.getScreenX(), e.getScreenY());
                     completeItem.setOnAction(f -> {
-                        DELETE((Long) createdTaskPane.getUserData(), "tasks", "false");
+                        httpHandler.DELETE((Long) createdTaskPane.getUserData(), "tasks", "false");
                         mainTaskVbox.getChildren().remove(createdTaskPane);
                         //DELETE for tasks also posts automatically to deleted_tasks
                     });
@@ -260,24 +216,12 @@ public class Controller {
                     });
                     deleteItem.setOnAction(f -> {
                         mainTaskVbox.getChildren().remove(createdTaskPane);
-                        DELETE(task.getId(), "tasks", "true");
+                        httpHandler.DELETE(task.getId(), "tasks", "true");
                     });
                 });
             }));
 
         } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public void UPDATE(String JSON, String path) {
-        try {
-            String url = "http://localhost:8080/" + path;
-            HttpRequest request = HttpRequest.newBuilder() //Building the HTTP request
-                    .uri(URI.create(url)).header("Content-Type", "application/json")
-                    .PUT(HttpRequest.BodyPublishers.ofString(JSON)).build(); //Attaches json as the body
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
     }
@@ -314,7 +258,7 @@ public class Controller {
                     description
             );
             if (title != null && date != null && description != null) {
-                UPDATE(json, "tasks/"+id);
+                httpHandler.UPDATE(json, "tasks/"+id);
             } else {return;}
             try {
                 Thread.sleep(300);
@@ -352,7 +296,7 @@ public class Controller {
     }
     public void switchToGPT() {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/showGPT.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/AI.fxml"));
                 Parent root = loader.load();
                 Stage stage = (Stage) gptMenuItem.getParentPopup().getOwnerWindow();
                 //This allows FX to trace back to the window (stage).
@@ -366,14 +310,14 @@ public class Controller {
     @FXML
     public void switchToDT() {
                 try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/showDeletedTasks.fxml"));
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/deletedTasks.fxml"));
                     Parent root = loader.load();
-                    Controller controller = loader.getController();
+                    FX FX = loader.getController();
                     Stage stage = (Stage) DTmenuItem.getParentPopup().getOwnerWindow();
                     Scene scene = new Scene(root);
                     stage.setScene(scene);
                     stage.show();
-                    Platform.runLater(controller::GETDeletedTasks);
+                    Platform.runLater(FX::GETDeletedTasks);
                 } catch (IOException | RuntimeException ex) {
                     System.out.println("Something's up with the scene.");
                 }
@@ -420,14 +364,14 @@ public class Controller {
     }
     public void switchToTasks() {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/main.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/tasks.fxml"));
                 Parent root = loader.load();
-                Controller controller = loader.getController();
+                FX FX = loader.getController();
                 Stage stage = (Stage) mainTasks.getParentPopup().getOwnerWindow();
                 Scene scene = new Scene(root);
                 stage.setScene(scene);
                 stage.show();
-                Platform.runLater(controller::GETTasks);
+                Platform.runLater(FX::GETTasks);
             } catch (IOException | RuntimeException ex) {
                 System.out.println("Something's up with the scene.");
             }
@@ -436,12 +380,12 @@ public class Controller {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/notebook.fxml"));
             Parent root = loader.load();
-            Controller controller = loader.getController();
-            Stage stage = (Stage) mainTasks.getParentPopup().getOwnerWindow();
+            FX FX = loader.getController();
+            Stage stage = (Stage) viewNotebook.getParentPopup().getOwnerWindow();
             Scene scene = new Scene(root);
             stage.setScene(scene);
             stage.show();
-            //Platform.runLater();
+            Platform.runLater(FX::GETNotebooks);
         } catch (IOException | RuntimeException ex) {
             System.out.println("Something's up with the scene.");
         }
@@ -455,7 +399,7 @@ public class Controller {
             String title = newTabTitle.getText();
             String notebookJson = String.format(
                     "{\"tabTitle\":\"%s\"}", title);
-            POST("notebooks", notebookJson);
+            httpHandler.POST("notebooks", notebookJson);
             newTabStage.close();
         });
 
@@ -466,9 +410,30 @@ public class Controller {
         newTabStage.setScene(newTabScene);
         newTabStage.show();
     }
+    public void editNewTab(String oldText, Long id){
+        Stage editTabStage = new Stage();
+        editTabStage.setTitle("Edit Tab");
+        TextField editTabTitle = new TextField(); editTabTitle.setPromptText(oldText);
+        Button editTabButton = new Button("Edit Tab");
+        editTabButton.setOnAction(e ->{
+            String title = editTabTitle.getText();
+            String notebookJson = String.format(
+                    "{\"tabTitle\":\"%s\"}", title);
+            httpHandler.UPDATE(notebookJson, "notebooks/" + id + "/tab");
+            tabsVbox.getChildren().clear();
+            Platform.runLater(this::GETNotebooks);
+            editTabStage.close();
+        });
+        VBox editTabVbox = new VBox(10, editTabTitle, editTabButton);
+        editTabVbox.setPadding(new Insets(20));
+        Scene editTabScene = new Scene(editTabVbox, 320, 150);
+        editTabStage.setScene(editTabScene);
+        editTabStage.show();
+
+    }
     public void GETNotebooks(){
         try {
-            List<Notebook> notebooks = GET("notebooks",Notebook.class);
+            List<Notebook> notebooks = httpHandler.GET("notebooks",Notebook.class);
             notebookScrollPane.setContent(notepadArea);
             notepadArea.setVisible(false);
             notepadArea.setWrapText(true);
@@ -484,6 +449,19 @@ public class Controller {
                     notepadArea.setVisible(true);
                     autoUpdateNotebookText(notebook.getId());
                 });
+                ContextMenu contextMenu = new ContextMenu();
+                MenuItem editTab = new MenuItem("Edit Tab");
+                MenuItem deleteTab = new MenuItem("Delete Tab");
+                contextMenu.getItems().addAll(editTab, deleteTab);
+                editTab.setOnAction(event -> {
+                    editNewTab(notebook.getTabTitle(), notebook.getId());
+                });
+                deleteTab.setOnAction(event -> {
+                    httpHandler.DELETE(notebook.getId(), "notebooks", "false");
+                    tabsVbox.getChildren().remove(createdTab);
+                    notepadArea.setVisible(false);
+                });
+                createdTab.setContextMenu(contextMenu);
                 tabsVbox.getChildren().add(createdTab);
             }));
         } catch (Exception e) {
@@ -506,7 +484,7 @@ public class Controller {
                             updateMap.put("notebookText", updatedText);
                             String updatedJson = mapper.writeValueAsString(updateMap);
                             //Converts map to json and handles newlines and special characters
-                            UPDATE(updatedJson, "notebooks/" + notebookId + "/text");
+                            httpHandler.UPDATE(updatedJson, "notebooks/" + notebookId + "/text");
                             tabsVbox.getChildren().clear();
                             GETNotebooks();
                             notepadArea.setVisible(true);
