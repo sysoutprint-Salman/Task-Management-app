@@ -39,6 +39,7 @@ public class NotebookController {
             notebookService.postNotebook(existingNotebook);
             return ResponseEntity.ok("Tab updated successfully");
     }
+    //PUT implementation for the notepad auto-saving
     @PutMapping("/{id}/text")
     public ResponseEntity<?> updateNotebookText(@PathVariable Long id, @RequestBody Notebook notebook){
         Notebook existingNotebook = notebookService.getNotebook(id)
@@ -47,7 +48,7 @@ public class NotebookController {
         notebookService.postNotebook(existingNotebook);
         return ResponseEntity.ok("Notebook text updated successfully");
     }
-    //PUT implementation for the notepad auto-saving goes here
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteNotebook(@PathVariable Long id){
         notebookService.deleteNotebook(id);

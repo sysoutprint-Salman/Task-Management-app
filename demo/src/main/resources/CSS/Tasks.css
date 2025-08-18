@@ -1,9 +1,64 @@
 .tasks_main {
-
+    -fx-background-color: #6FB0FF;
 }
-.tasks_vbox {
-    -fx-background-color:
+.tasks_main .scroll-pane {
+    -fx-background-color: transparent;
+}
+.tasks_main .scroll-pane .tasks_vbox {
+    -fx-background-color: #6FB0FF;
+}
+.task {
+    -fx-background-color: transparent;
+}
+.task .content {
+    -fx-background-radius: 10px 10px 10px 10px;
+    -fx-border-color: transparent;
+}
+.task .content .label {
+    -fx-font-size: 14;
+}
+
+.task_hbox .label{
+    -fx-font-size: 14;
+}
+.task_hbox .button {
+   -fx-font-size: 12;
+   -fx-background-color: transparent;
 }
 .task .title{
-    -fx-background-color: #123A13;
+    -fx-background-radius: 10px 10px 10px 10px; //Rounded corners
+    -fx-background-color: #F6FDFF;
+    -fx-padding: 20px 0px 20px 0px;
+    -fx-collapsed: false;
+}
+.task .title .arrow-button { //code
+    visibility: hidden;
+}
+.task .title .radio-button .radio{
+    -fx-padding: 5;
+    -fx-background-color: white;
+    -fx-border-color: #545050;
+    -fx-shape: "M0,0 A1,1 0 1,0 0,-0.01 Z";
+}
+.task .title .radio-button:selected .radio {
+    -fx-background-color: #585858;
+}
+.task .title .radio-button .radio .dot {
+    -fx-background-color: transparent;
+}
+
+
+/* -------Task creation pop-up-------*/
+.create_task_vbox{
+    -fx-background-color: #EFF2F6;
+}
+.create_task_vbox .button{
+    -fx-border-color: #585858;
+    -fx-background-color: white;
+}
+.create_task_vbox .button:pressed{
+    -fx-background-color: #E8E8E8;
+}
+.create_task_vbox .pickers_hbox .color-picker {
+    -fx-background-color: #E8E8E8;
 }

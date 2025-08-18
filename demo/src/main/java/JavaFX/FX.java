@@ -14,9 +14,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.json.JSONObject;
@@ -67,7 +65,7 @@ public class FX {
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> scheduledFuture;
     private final HTTPHandler httpHandler = new HTTPHandler();
-
+    private Task.Status status;
 
     @FXML
     public void createTask() {
@@ -80,16 +78,17 @@ public class FX {
         DatePicker picker = new DatePicker();
         picker.setPromptText("mm/dd/yyyy");
 
-        RadioButton am = new RadioButton("AM");
+        /*RadioButton am = new RadioButton("AM");
         RadioButton pm = new RadioButton("PM");
         ToggleGroup toggleGroup = new ToggleGroup();
         am.setToggleGroup(toggleGroup);
         pm.setToggleGroup(toggleGroup);
         comboBoxTimes().setPrefWidth(80);
-        comboBoxTimes().setEditable(true);
+        comboBoxTimes().setEditable(true);*/
         picker.setPrefWidth(100);
 
         HBox timeHbox = new HBox(10, picker); //, comboBoxTimes(), am, pm);
+        timeHbox.getStyleClass().add("pickers_hbox");
 
         TextArea descriptionArea = new TextArea();
         descriptionArea.setPromptText("Description");
@@ -101,7 +100,7 @@ public class FX {
             String description = descriptionArea.getText();
             if (title != null && picker.getValue() != null && descriptionArea.getText() != null) {
                 String taskJson = String.format(
-                        "{\"title\":\"%s\", \"date\":\"%s\", \"description\":\"%s\"}",
+                        "{\"title\":\"%s\", \"date\":\"%s\", \"description\":\"%s\", \"status\":\"POSTED\"}",
                         title, date != null ? date.toString() : "", description
                 );
                 httpHandler.POST("tasks", taskJson);
@@ -118,6 +117,7 @@ public class FX {
 
         VBox createTaskVbox = new VBox(10, titleField, timeHbox, descriptionArea, createButton);
         createTaskVbox.setPadding(new Insets(20));
+        createTaskVbox.getStyleClass().add("create_task_vbox");
 
         Scene createTaskScene = new Scene(createTaskVbox, 350, 300);
         createTaskStage.setScene(createTaskScene);
@@ -125,25 +125,35 @@ public class FX {
     }
     public void dummyTasks(){
         for (int i = 1; i <= 3; i++) {
-            RadioButton radio = new RadioButton();
-            TitledPane createdTaskPane = new TitledPane();
-            createdTaskPane.setText("Dummy task " + i);
-            createdTaskPane.setExpanded(false);
-            createdTaskPane.setPrefWidth(500);
-            //createdTaskPane.setStyle("-fx-collapsible: false;");
-            createdTaskPane.setGraphic(radio);
+            RadioButton radio = new RadioButton(); radio.setPrefWidth(30);
+            TitledPane task = new TitledPane();
             Button dateButton  = new Button("Due: Whenever" );
+            Label taskTitle = new Label("Dummy task " + i); taskTitle.setPrefWidth(290);
+            HBox taskHbox = new HBox();
+            taskHbox.getStyleClass().add("task_hbox");
+            taskHbox.getChildren().addAll(radio, taskTitle, dateButton);
+            taskHbox.setAlignment(Pos.CENTER);
+
+
+            task.setId("dummyTask");
+            task.setExpanded(false);
+            task.setPrefWidth(500);
+            task.setGraphic(taskHbox);
+            task.getStyleClass().add("task");
+
+
             TextArea descriptionArea =  new TextArea("This is a test description");
-            descriptionArea.setPrefSize(20,20);
+            descriptionArea.setPrefHeight(50);
             descriptionArea.setWrapText(true);
-            VBox content = new VBox(dateButton, descriptionArea);
+            VBox taskContent = new VBox(new Label("Description:"), descriptionArea);
+            taskContent.setSpacing(8);
             descriptionArea.textProperty().addListener((obs, oldText, newText) -> {
                 descriptionArea.setPrefHeight(
                         descriptionArea.getFont().getSize() * (descriptionArea.getParagraphs().size() + 1) + 20
                 );
             });
-            createdTaskPane.setContent(content);
-            mainTaskVbox.getChildren().add(createdTaskPane);
+            task.setContent(taskContent);
+            mainTaskVbox.getChildren().add(task);
         }
     }
     public void GETDeletedTasks() {
@@ -183,21 +193,52 @@ public class FX {
     }
     public void GETTasks() {
         try {
-            List<Task> tasks = httpHandler.GET("tasks", Task.class);
+            List<Task> tasks = httpHandler.GET("tasks/POSTED", Task.class);
             tasks.forEach((task -> {
                 TitledPane createdTaskPane = new TitledPane();
-                //createdTaskPane.setPrefSize(200,200);
-                createdTaskPane.setText(task.getTitle());
+                RadioButton radio = new RadioButton(); radio.setPrefWidth(30);
+                ToggleGroup group = new ToggleGroup();
+                radio.setToggleGroup(group);
+                Button dateButton  = new Button("Due: " + task.getDate().format(dateFormatter));
+                Label taskTitle = new Label(task.getTitle()); taskTitle.setPrefWidth(290);
+                TextArea descriptionArea = new TextArea(task.getDescription());
+                HBox taskHbox = new HBox();
+
+                taskHbox.getStyleClass().add("task_hbox");
+                taskHbox.getChildren().addAll(radio, taskTitle, dateButton);
+                taskHbox.setAlignment(Pos.CENTER);
+
+                //createdTaskPane.setText(task.getTitle());
                 createdTaskPane.setExpanded(false);
                 createdTaskPane.setPrefWidth(500);
-                Label descriptionLabel =  new Label(task.getDescription());
-                VBox content = new VBox(new Label("Due: " + task.getDate().format(dateFormatter)),
-                        descriptionLabel);
-                descriptionLabel.setWrapText(true);
-                descriptionLabel.maxWidthProperty().bind(content.widthProperty());
-                createdTaskPane.setContent(content);
+                createdTaskPane.setGraphic(taskHbox);
+                createdTaskPane.getStyleClass().add("task");
+
+
+                descriptionArea.setPrefHeight(50);
+                descriptionArea.setWrapText(true);
+                VBox taskContent = new VBox(new Label("Description:"), descriptionArea);
+                taskContent.setSpacing(8);
+                descriptionArea.maxWidthProperty().bind(taskContent.widthProperty());
+                descriptionArea.textProperty().addListener((obs, oldText, newText) -> {
+                    descriptionArea.setPrefHeight(
+                            descriptionArea.getFont().getSize() * (descriptionArea.getParagraphs().size() + 1) + 20
+                    );
+                });
+
+                createdTaskPane.setContent(taskContent);
                 createdTaskPane.setUserData(task.getId());
                 mainTaskVbox.getChildren().add(createdTaskPane);
+
+                radio.setOnAction(f -> {
+                    System.out.println("Radio pressed!");
+                    if (radio.isSelected()){
+                        status = Task.Status.COMPLETED;
+                        String json = String.format("{\"status\":\"%s\"}", status);
+                        httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                        mainTaskVbox.getChildren().remove(createdTaskPane);
+                    }
+                });
 
                 ContextMenu rightClickMenu = new ContextMenu();
                 MenuItem completeItem = new MenuItem("Complete");
@@ -207,9 +248,10 @@ public class FX {
                 createdTaskPane.setOnContextMenuRequested(e -> {
                     rightClickMenu.show(createdTaskPane, e.getScreenX(), e.getScreenY());
                     completeItem.setOnAction(f -> {
-                        httpHandler.DELETE((Long) createdTaskPane.getUserData(), "tasks", "false");
+                        status = Task.Status.COMPLETED;
+                        String json = String.format("{\"status\":\"%s\"}", status);
+                        httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
                         mainTaskVbox.getChildren().remove(createdTaskPane);
-                        //DELETE for tasks also posts automatically to deleted_tasks
                     });
                     editItem.setOnAction(f -> {
                         editTaskStage((Long) createdTaskPane.getUserData());
@@ -470,7 +512,7 @@ public class FX {
     } //TODO add delete and edit functions to tabs.
     public void autoUpdateNotebookText(Long notebookId){
         notepadArea.setOnKeyReleased(e ->{
-            if (isTaskScheduled) { //Debouncing
+            if (isTaskScheduled) { //Debouncing: Clears any previous timers to avoid multiple timers firing
                 timer.cancel();
                 timer = new Timer();
             }
@@ -496,7 +538,7 @@ public class FX {
                     isTaskScheduled = false;
                 }
             };
-            timer.schedule(task, DELAY);
+            timer.schedule(task, DELAY); //Schedules the next auto-save
             isTaskScheduled = true;
         });
     }

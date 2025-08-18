@@ -1,16 +1,18 @@
 package JavaFX;
 
+import SpringBoot.Main;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.springframework.boot.SpringApplication;
 
 import java.io.IOException;
 
 public class TaskUI extends Application {
     public static void main(String[] args) {
-        //SpringApplication.run(Main.class, args);
+        SpringApplication.run(Main.class, args);
         launch(args);
 
     }
@@ -24,8 +26,8 @@ public class TaskUI extends Application {
             primaryStage.setTitle("Task Management App");
             primaryStage.setScene(scene);
             primaryStage.show();
-            //FX.GETTasks();
-            FX.dummyTasks();
+            FX.GETTasks();
+            //FX.dummyTasks();
         } catch (Exception e) {
             e.printStackTrace();
         }
