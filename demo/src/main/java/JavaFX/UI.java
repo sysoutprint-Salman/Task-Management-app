@@ -10,7 +10,7 @@ import org.springframework.boot.SpringApplication;
 
 import java.io.IOException;
 
-public class TaskUI extends Application {
+public class UI extends Application {
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
         launch(args);
@@ -19,15 +19,16 @@ public class TaskUI extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/tasks.fxml"));
+            //FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/tasks.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/AI.fxml"));
             Parent root = loader.load(); //Holds all the UI components from loader.
-            FX FX = loader.getController();
+            //TaskFX FXHandler = loader.getController();
+            AI_AssistantFX FXHandler = loader.getController();
             Scene scene = new Scene(root);
             primaryStage.setTitle("Task Management App");
             primaryStage.setScene(scene);
             primaryStage.show();
-            FX.GETTasks();
-            //FX.dummyTasks();
+            //FXHandler.GETTasks();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -1,0 +1,38 @@
+.chatbox_stage{ /*Anchor pane*/
+
+}
+.main_pane{ //Border pane
+    //-fx-background-color: black;
+}
+.main_pane .scroll-pane{
+    -fx-border-color: gray;
+}
+.main_pane .scroll-pane .viewport{ /*window on-top of scroll pane*/
+    //-fx-border-color: gray;
+    -fx-background-color: white;
+}
+.main_pane .scroll-pane .chatbox { /*Chatbox vbox*/
+
+}
+.main_pane .scroll-pane .chatbox .response { /*Responses*/
+    -fx-border-color: grey;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+    -fx-background-color: #ECECEC;
+}
+.main_pane .scroll-pane .chatbox .prompt { /*User prompt*/
+    -fx-border-color: grey;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+    -fx-background-color: #E6EBF0;
+    -fx-alignment: center_right;
+}
+
+/*Prompt field and send button*/
+.main_pane .prompt_area .text-field{
+
+}

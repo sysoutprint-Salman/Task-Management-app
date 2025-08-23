@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity //I.E table in a database
 @Table(name = "tasks")
@@ -26,6 +27,7 @@ public class Task {
     private String description;
     @Enumerated(EnumType.STRING) //Stores status's as strings in db
     private Status status;
+    private LocalDateTime creationDate;
     //Add color column which holds hexadecimal color code
     public enum Status {POSTED,DELETED,COMPLETED }
 }

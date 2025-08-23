@@ -1,12 +1,27 @@
+/* -------Main pane-------*/
 .tasks_main {
     -fx-background-color: #6FB0FF;
 }
+.tasks_main .new_task_button { //'New Task' button
+    -fx-background-color: white;
+}
+.tasks_main .new_task_button:pressed {
+    -fx-background-color: #C5C4C4;
+}
+.tasks_main .tasks_label{
+    -fx-font-family: "Arial";
+    -fx-font-size:30;
+}
+
+/* -------Tasks containers-------*/
 .tasks_main .scroll-pane {
     -fx-background-color: transparent;
 }
 .tasks_main .scroll-pane .tasks_vbox {
     -fx-background-color: #6FB0FF;
 }
+
+/* -------Tasks-------*/
 .task {
     -fx-background-color: transparent;
 }
@@ -17,7 +32,6 @@
 .task .content .label {
     -fx-font-size: 14;
 }
-
 .task_hbox .label{
     -fx-font-size: 14;
 }
@@ -61,4 +75,19 @@
 }
 .create_task_vbox .pickers_hbox .color-picker {
     -fx-background-color: #E8E8E8;
+}
+
+/* -------Sort button-------*/
+.tasks_main #sortButton {
+    -fx-background-color: white;
+    -fx-padding: 0 2 0 2;
+}
+.tasks_main #sortButton .arrow-button{
+    -fx-background-color: white;
+    visibility: hidden;
+    -fx-pref-width: 0;
+}
+.tasks_main #sortButton:showing,
+.tasks_main #sortButton:hover{
+    -fx-background-color: #C5C4C4;
 }

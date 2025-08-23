@@ -4,30 +4,29 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="576.0" prefWidth="600.0" styleClass="tasks_main" stylesheets="@../CSS/Tasks.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.FX">
+<AnchorPane fx:id="tasks_main" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="576.0" prefWidth="600.0" styleClass="tasks_main" stylesheets="@../CSS/Tasks.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.TaskFX">
    <children>
       <ScrollPane fitToHeight="true" fitToWidth="true" layoutX="71.0" layoutY="84.0" prefHeight="477.0" prefWidth="458.0" styleClass="tasks_scroll_pane" vbarPolicy="NEVER" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="71.0" AnchorPane.rightAnchor="71.0" AnchorPane.topAnchor="84.0">
          <content>
             <VBox fx:id="mainTaskVbox" alignment="TOP_LEFT" prefHeight="477.0" prefWidth="456.0" spacing="10.0" styleClass="tasks_vbox" />
          </content>
       </ScrollPane>
-      <MenuBar prefHeight="26.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <MenuBar prefHeight="26.0" prefWidth="600.0" style="-fx-background-color: white;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
           <Menu mnemonicParsing="false" text="Tasks">
             <items>
-                  <MenuItem mnemonicParsing="false" onAction="#createTask" text="New Task" />
+                  <MenuItem mnemonicParsing="false" onAction="#GETTasks" text="View Tasks" />
+                  <MenuItem mnemonicParsing="false" onAction="#GETDeletedTasks" text="Deleted Tasks" />
+                  <MenuItem mnemonicParsing="false" onAction="#GETCompletedTasks" text="Completed Tasks" />
               <MenuItem mnemonicParsing="false" text="Close" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Deleted Tasks">
-            <items>
-              <MenuItem fx:id="DTmenuItem" mnemonicParsing="false" onAction="#switchToDT" text="Show Deleted Tasks" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="AI Chat">
@@ -42,10 +41,17 @@
             </Menu>
         </menus>
       </MenuBar>
-      <Label alignment="CENTER" layoutX="0.8" layoutY="35.0" prefHeight="35.0" prefWidth="600.0" text="Tasks" textAlignment="CENTER" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="35.0">
+      <Label fx:id="taskLabel" alignment="CENTER" layoutY="40.0" prefHeight="35.0" prefWidth="600.0" styleClass="tasks_label" text="Tasks" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
          <font>
             <Font size="24.0" />
          </font></Label>
-      <Button layoutX="25.0" layoutY="40.0" mnemonicParsing="false" prefWidth="67.0" text="New Task" />
+      <Button fx:id="createTaskButton" layoutX="25.0" layoutY="45.0" mnemonicParsing="false" onAction="#createTask" prefWidth="67.0" styleClass="new_task_button" text="New Task" />
+      <MenuButton fx:id="sortButton" layoutX="506.0" layoutY="45.0" mnemonicParsing="false" text="Sort" AnchorPane.rightAnchor="49.200000000000045" AnchorPane.topAnchor="45.0">
+        <items>
+            <RadioMenuItem fx:id="A_Z" mnemonicParsing="false" text="A_Z" />
+            <RadioMenuItem fx:id="Due_Date" mnemonicParsing="false" text="Due Date" />
+            <RadioMenuItem fx:id="Newest" mnemonicParsing="false" text="Newest" />
+        </items>
+      </MenuButton>
    </children>
 </AnchorPane>

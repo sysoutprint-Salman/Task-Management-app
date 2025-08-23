@@ -6,18 +6,13 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane prefHeight="431.0" prefWidth="651.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.FX">
-    <MenuBar prefHeight="26.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<AnchorPane prefHeight="431.0" prefWidth="651.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.NotebookFX">
+    <MenuBar prefHeight="26.0" prefWidth="600.0" style="-fx-background-color: white;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
             <Menu mnemonicParsing="false" text="Tasks">
                 <items>
                     <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
                     <MenuItem mnemonicParsing="false" text="Close" />
-                </items>
-            </Menu>
-            <Menu mnemonicParsing="false" text="Deleted Tasks">
-                <items>
-                    <MenuItem fx:id="DTmenuItem" mnemonicParsing="false" onAction="#switchToDT" text="Show Deleted Tasks" />
                 </items>
             </Menu>
             <Menu mnemonicParsing="false" text="AI Chat">

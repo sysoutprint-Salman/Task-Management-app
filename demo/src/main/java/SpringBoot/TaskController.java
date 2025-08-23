@@ -31,6 +31,7 @@ public class TaskController {
     }
     @PostMapping //POST request
     public Task createTask(@RequestBody Task task) {
+        task.setCreationDate(LocalDateTime.now());
         return taskService.createTask(task);
     }
 
