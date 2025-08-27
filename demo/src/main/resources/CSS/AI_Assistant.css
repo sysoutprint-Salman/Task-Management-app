@@ -34,5 +34,15 @@
 
 /*Prompt field and send button*/
 .main_pane .prompt_area .text-field{
-
+    -fx-background-color: white;
+    -fx-border-color: gray;
+    -fx-border-radius:3;
+}
+.main_pane .prompt_area .button{
+    -fx-background-color: white;
+    -fx-border-color: gray;
+    -fx-border-radius:3;
+}
+.main_pane .prompt_area .button:hover{
+    -fx-background-color: #E3E3E3;
 }

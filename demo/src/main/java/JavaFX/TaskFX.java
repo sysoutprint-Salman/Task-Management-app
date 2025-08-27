@@ -36,6 +36,7 @@ public class TaskFX{
     private enum Sort {A_Z, DUE_DATE, NEWEST}
     private Sort currentSortOption;
     private ToggleGroup sortGroup = new ToggleGroup();
+    private List<Task> tasks = httpHandler.GET("tasks/" + status, Task.class);
 
     public MenuItem gptMenuItem;
     public MenuItem viewNotebook;
@@ -103,8 +104,6 @@ public class TaskFX{
         try {
             status = Task.Status.POSTED;
             mainTaskVbox.getChildren().clear();
-
-            //Temp solution: it's wiser to GET based on status defined in the controller and not here
             List<Task> tasks = httpHandler.GET("tasks/" + status, Task.class);
             tasks = sort(tasks,currentSortOption); //Default sort from
             tasks.forEach((task -> {
@@ -452,7 +451,7 @@ public class TaskFX{
         handler.switchToGPT(gptMenuItem);
     }
     public void switchToNotebook() {
-        handler.switchToGPT(viewNotebook);
+        handler.switchToNotebook(viewNotebook);
     }
 
 }

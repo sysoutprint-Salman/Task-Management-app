@@ -20,5 +20,6 @@ public class Notebook {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String tabTitle;
+    @Column(columnDefinition = "TEXT")
     private String notebookText;
 }

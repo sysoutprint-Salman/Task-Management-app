@@ -13,10 +13,12 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GPTresponse {
+public class AI {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String prompt;
+    @Column(columnDefinition = "TEXT")
     private String response;
     private LocalDateTime timestamp;
 }

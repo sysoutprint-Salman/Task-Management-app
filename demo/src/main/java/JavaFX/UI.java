@@ -19,16 +19,16 @@ public class UI extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         try {
-            //FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/tasks.fxml"));
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/AI.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/tasks.fxml"));
+            //FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/notebook.fxml"));
             Parent root = loader.load(); //Holds all the UI components from loader.
-            //TaskFX FXHandler = loader.getController();
-            AI_AssistantFX FXHandler = loader.getController();
+            TaskFX FXHandler = loader.getController();
+            //NotebookFX FXHandler = loader.getController();
             Scene scene = new Scene(root);
             primaryStage.setTitle("Task Management App");
             primaryStage.setScene(scene);
             primaryStage.show();
-            //FXHandler.GETTasks();
+            FXHandler.GETTasks();
         } catch (Exception e) {
             e.printStackTrace();
         }

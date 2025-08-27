@@ -1,0 +1,68 @@
+.main_stage{
+    //-fx-background-color: white ;
+}
+
+.main_notebook{}
+
+.scrollpane{
+    -fx-background-color: transparent ;
+}
+.tabs_container{
+    //-fx-border-color: black ;
+}
+.tabs_vbox{
+    //-fx-border-color: gray ;
+}
+
+/* -------Tab header-------*/
+.tabs_header .title{
+    -fx-background-color: white ;
+    //-fx-border-color: gray;
+    -fx-border-color: transparent transparent gray transparent;
+}
+.tabs_header .title .button{
+    -fx-background-color:  #F6F5F5 ;
+    -fx-border-color: gray;
+    -fx-border-radius: 100;
+    -fx-background-radius: 100;
+}
+.tabs_header .title .button:hover{
+    -fx-background-color: #CECECE;
+}
+.tabs_header .title .menu-button{
+    -fx-background-color: #F6F5F5;
+    -fx-border-color: gray;
+    -fx-padding: 0;
+    -fx-border-radius: 100;
+    -fx-background-radius: 100;
+}
+.tabs_header .title .menu-button:showing,
+.tabs_header .title .menu-button:hover{
+    -fx-background-color: #CECECE;
+}
+.tabs_header .title .menu-button .arrow-button{
+    visibility: hidden;
+    -fx-pref-width: 0;
+}
+
+/* -------Tabs-------*/
+.tab{
+    -fx-pref-height: 30;
+    -fx-alignment: baseline-left;
+    -fx-border-color: transparent transparent gray transparent;
+    -fx-background-color: #DDDCDC;
+}
+
+.tab:selected, .tab:hover{
+   -fx-background-color: derive(#DDDCDC, 40%);
+}
+
+/* -------Notepad-------*/
+.notepad_scroll_pane{}
+
+.notepad_scroll_pane .notebook_textarea{
+    //-fx-border-color: gray;
+}
+.notepad_scroll_pane .notebook_textarea .content{
+    //-fx-background-color: white;
+}

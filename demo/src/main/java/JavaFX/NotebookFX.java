@@ -2,14 +2,18 @@ package JavaFX;
 
 import SpringBoot.Notebook;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.*;
 
@@ -20,13 +24,14 @@ public class NotebookFX{
     public MenuBar tabsMenuBar;
     private Timer timer = new Timer();
     private boolean isTaskScheduled = false;
-    private final int DELAY = 2000;
+    private final int DELAY = 700;
     private final ObjectMapper mapper = new ObjectMapper();
     private final HTTPHandler httpHandler = new HTTPHandler();
     protected final SwitchScenes handler = new SwitchScenes();
 
     public MenuItem gptMenuItem;
     public MenuItem mainTasks;
+    public Pane savedPane;
 
     public NotebookFX(){}
 
@@ -41,6 +46,8 @@ public class NotebookFX{
                     "{\"tabTitle\":\"%s\"}", title);
             httpHandler.POST("notebooks", notebookJson);
             newTabStage.close();
+            tabsVbox.getChildren().clear();
+            GETNotebooks();
         });
 
         VBox newTabVbox = new VBox(10, newTabTitle, createTabButton);
@@ -50,7 +57,7 @@ public class NotebookFX{
         newTabStage.setScene(newTabScene);
         newTabStage.show();
     }
-    public void editNewTab(String oldText, Long id){
+    public void editNewTab(String oldText, Long id, Notebook notebook, ToggleButton tabButton){
         Stage editTabStage = new Stage();
         editTabStage.setTitle("Edit Tab");
         TextField editTabTitle = new TextField(); editTabTitle.setPromptText(oldText);
@@ -60,8 +67,10 @@ public class NotebookFX{
             String notebookJson = String.format(
                     "{\"tabTitle\":\"%s\"}", title);
             httpHandler.UPDATE(notebookJson, "notebooks/" + id + "/tab");
-            tabsVbox.getChildren().clear();
-            Platform.runLater(this::GETNotebooks);
+            notebook.setTabTitle(title);
+            tabButton.setText(notebook.getTabTitle());
+            /*tabsVbox.getChildren().clear();
+            Platform.runLater(this::GETNotebooks);*/
             editTabStage.close();
         });
         VBox editTabVbox = new VBox(10, editTabTitle, editTabButton);
@@ -77,69 +86,65 @@ public class NotebookFX{
             notebookScrollPane.setContent(notepadArea);
             notepadArea.setVisible(false);
             notepadArea.setWrapText(true);
-            Menu tabsMenuCompo = new Menu("Tabs");
-            tabsMenuBar = new MenuBar(); tabsMenuBar.getMenus().add(tabsMenuCompo);
-            tabsVbox.getChildren().add(tabsMenuBar);
+            notepadArea.setPromptText("Type anything you want.");
+            ToggleGroup tabsGroup = new ToggleGroup();
+
             notebooks.forEach((notebook ->{
-                TitledPane createdTab = new TitledPane();
-                createdTab.setText(notebook.getTabTitle());
-                createdTab.setCollapsible(false);
-                createdTab.setOnMouseClicked(e ->{
+                ToggleButton tabButton = new ToggleButton();
+                tabButton.setText(notebook.getTabTitle());
+                tabButton.setMaxWidth(Double.MAX_VALUE);
+                tabButton.getStyleClass().add("tab");
+                tabButton.setToggleGroup(tabsGroup);
+                tabButton.setOnMouseClicked(e ->{
                     notepadArea.setText(notebook.getNotebookText());
                     notepadArea.setVisible(true);
-                    autoUpdateNotebookText(notebook.getId());
+                    autoUpdateNotebookText(notebook.getId(), notebook);
+                    //tabButton.setSelected(true);
                 });
                 ContextMenu contextMenu = new ContextMenu();
                 MenuItem editTab = new MenuItem("Edit Tab");
                 MenuItem deleteTab = new MenuItem("Delete Tab");
                 contextMenu.getItems().addAll(editTab, deleteTab);
                 editTab.setOnAction(event -> {
-                    editNewTab(notebook.getTabTitle(), notebook.getId());
-                });
+                    editNewTab(notebook.getTabTitle(), notebook.getId(), notebook, tabButton);});
                 deleteTab.setOnAction(event -> {
                     httpHandler.DELETE(notebook.getId(), "notebooks", "false");
-                    tabsVbox.getChildren().remove(createdTab);
-                    notepadArea.setVisible(false);
-                });
-                createdTab.setContextMenu(contextMenu);
-                tabsVbox.getChildren().add(createdTab);
+                    tabsVbox.getChildren().remove(tabButton);
+                    notepadArea.setVisible(false);});
+                tabButton.setContextMenu(contextMenu);
+                tabsVbox.getChildren().add(tabButton);
             }));
         } catch (Exception e) {
             e.printStackTrace();
         }
-    } //TODO add delete and edit functions to tabs.
-    public void autoUpdateNotebookText(Long notebookId){
-        notepadArea.setOnKeyReleased(e ->{
-            if (isTaskScheduled) { //Debouncing: Clears any previous timers to avoid multiple timers firing
-                timer.cancel();
-                timer = new Timer();
-            }
-            TimerTask task = new TimerTask() {
-                @Override
-                public void run() {
-                    Platform.runLater(() -> {
+    }
+
+    public void autoUpdateNotebookText(Long notebookId, Notebook notebook) {
+            Timeline debouncer = new Timeline(
+                    new KeyFrame(Duration.millis(DELAY), e -> {
                         try {
                             String updatedText = notepadArea.getText();
                             Map<String, String> updateMap = new HashMap<>();
                             updateMap.put("notebookText", updatedText);
                             String updatedJson = mapper.writeValueAsString(updateMap);
-                            //Converts map to json and handles newlines and special characters
                             httpHandler.UPDATE(updatedJson, "notebooks/" + notebookId + "/text");
-                            tabsVbox.getChildren().clear();
-                            GETNotebooks();
-                            notepadArea.setVisible(true);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                            savedPane.setVisible(true);
+                            //notepadArea.setVisible(true);
+                            notebook.setNotebookText(updatedText);
 
-                    });
-                    isTaskScheduled = false;
-                }
-            };
-            timer.schedule(task, DELAY); //Schedules the next auto-save
-            isTaskScheduled = true;
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    })
+            );
+            debouncer.setCycleCount(1); //Performs the above task once each time it fires
+        notepadArea.setOnKeyTyped(e -> {
+            savedPane.setVisible(false);
+            debouncer.stop(); //Stops any previous running timelines
+            debouncer.playFromStart(); //Restarts
         });
     }
+
     public TitledPane coloredTabs(TitledPane tab, Label newTabTitle){
         ColorPicker colorPicker = new ColorPicker();
 

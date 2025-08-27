@@ -26,33 +26,41 @@ public class NotebookController {
                 .map(notebook -> new NotebookDTO(notebook.getId(), notebook.getTabTitle(), notebook.getNotebookText()))
                 .collect(Collectors.toList());*/
     }
+    @GetMapping("/{id}")
+    public Notebook getNotebook(Long id){
+        Optional<Notebook> notebook = notebookService.getNotebook(id);
+        if (notebook.isPresent()){return notebook.get();}
+        else {System.out.println("SpringBoot: Notebook not found. Returning empty Notebook.");}
+        return new Notebook();
+    }
+
     @PostMapping
     public ResponseEntity<?> postNotebook(@RequestBody Notebook notebook){
         notebookService.postNotebook(notebook);
-        return ResponseEntity.ok("Notebook successfully created.");
+        return ResponseEntity.ok("SpringBoot: Notebook successfully created.");
     }
     @PutMapping("/{id}/tab")
     public ResponseEntity<?> updateNotebookTab(@PathVariable Long id, @RequestBody Notebook notebook){
             Notebook existingNotebook = notebookService.getNotebook(id)
-                    .orElseThrow(() -> new RuntimeException("Notebook not found."));
+                    .orElseThrow(() -> new RuntimeException("SpringBoot: Notebook not found."));
             existingNotebook.setTabTitle(notebook.getTabTitle());
             notebookService.postNotebook(existingNotebook);
-            return ResponseEntity.ok("Tab updated successfully");
+            return ResponseEntity.ok("SpringBoot: Tab updated successfully");
     }
     //PUT implementation for the notepad auto-saving
     @PutMapping("/{id}/text")
     public ResponseEntity<?> updateNotebookText(@PathVariable Long id, @RequestBody Notebook notebook){
         Notebook existingNotebook = notebookService.getNotebook(id)
-                .orElseThrow(() -> new RuntimeException("Notebook not found."));
+                .orElseThrow(() -> new RuntimeException("SpringBoot: Notebook not found."));
         existingNotebook.setNotebookText(notebook.getNotebookText());
         notebookService.postNotebook(existingNotebook);
-        return ResponseEntity.ok("Notebook text updated successfully");
+        return ResponseEntity.ok("SpringBoot: Notebook text updated successfully");
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteNotebook(@PathVariable Long id){
         notebookService.deleteNotebook(id);
-        return ResponseEntity.ok("Notebook deleted successfully.");
+        return ResponseEntity.ok("SpringBoot: Notebook deleted successfully.");
     }
 }
 @Service

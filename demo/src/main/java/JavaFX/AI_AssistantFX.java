@@ -1,10 +1,14 @@
 package JavaFX;
 
+import SpringBoot.AI;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -17,6 +21,10 @@ import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AI_AssistantFX {
     public MenuItem gptMenuItem;
@@ -25,20 +33,21 @@ public class AI_AssistantFX {
     public TextField userTextField;
     private final DateTimeFormatter dateAndTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yy hh:mm a");
     protected final SwitchScenes handler = new SwitchScenes();
-    private final LocalDateTime now = LocalDateTime.now();
-
+    private final LocalDateTime timestampNow = LocalDateTime.now();
+    public ScrollPane messageScrollPane;
+    private final HTTPHandler httpHandler = new HTTPHandler();
+    private final ObjectMapper mapper = new ObjectMapper();
     public MenuItem mainTasks;
     public MenuItem viewNotebook;
 
     public AI_AssistantFX(){}
 
     public String speakToGPT(@NotNull String userPrompt) {
-        String timeNow = now.format(dateAndTimeFormatter);
         String gptKey = System.getenv("gptKey");
         String content = String.format(
                 "{\"role\":\"assistant\",\"content\":\"%s\"}",
-                userPrompt.concat(" Make your response into paragraphs IF needed with a maximum word count of 125. " +
-                        "Follow the users request to the letter.")
+                userPrompt.concat(" Make your response a maximum word count of 125. " +
+                        "Structure long responses into paragraphs.")
         );
         String body = String.format("""
                  {
@@ -74,20 +83,72 @@ public class AI_AssistantFX {
             Label userPrompt = new Label(prompt);
             userTextField.clear();
             userPrompt.setWrapText(true);
-            //userPrompt.maxWidthProperty().bind(chatBoxVbox.widthProperty());
             userPrompt.wrapTextProperty();
             userPrompt.getStyleClass().add("prompt");
+            chatBoxVbox.setAlignment(Pos.CENTER_RIGHT);
             chatBoxVbox.getChildren().add(userPrompt);
-        }
-            String contentString = speakToGPT(prompt);
-            Label gptResponseLabel = new Label(now.format(dateAndTimeFormatter) + "\n" + contentString + " - AI Assistant");
+            chatBoxVbox.heightProperty().addListener((obs, oldVal, newVal) -> {
+                messageScrollPane.setVvalue(1.0);
+            });
 
-            gptResponseLabel.setWrapText(true);
-            gptResponseLabel.wrapTextProperty();
-            gptResponseLabel.setPadding(new Insets(10));
-            //gptResponseLabel.maxWidthProperty().bind(chatBoxVbox.widthProperty());
-            gptResponseLabel.getStyleClass().add("response");
-            chatBoxVbox.getChildren().add(gptResponseLabel);
+            //Prompting will be done in a background thread thanks to javafx.concurrent
+            Task<String> task = new Task<>() {
+                @Override
+                protected String call() throws Exception {
+                    return speakToGPT(prompt);
+                }
+            };
+            task.setOnSucceeded(e -> {
+                String contentString = task.getValue();
+                Label gptResponseLabel = new Label(timestampNow.format(dateAndTimeFormatter) + "\n" + contentString + " - AI Assistant");
+
+                gptResponseLabel.setWrapText(true);
+                gptResponseLabel.wrapTextProperty();
+                gptResponseLabel.setPadding(new Insets(10));
+                gptResponseLabel.getStyleClass().add("response");
+                HBox responseContainer = new HBox(gptResponseLabel);
+                responseContainer.setAlignment(Pos.CENTER_LEFT);
+                chatBoxVbox.getChildren().add(responseContainer);
+
+                try {
+                    Map <String, Object> jsonPayload = new HashMap<>();
+                    jsonPayload.put("prompt",prompt);
+                    jsonPayload.put("response",contentString);
+                    jsonPayload.put("timestamp",timestampNow.toString());
+                    String refinedJson = mapper.writeValueAsString(jsonPayload);
+                    httpHandler.POST("gptresponses",refinedJson);
+                } catch (JsonProcessingException ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
+            new Thread(task).start();
+        }
+    }
+    public void GETChatlogs(){
+        List<AI> chatLogs = httpHandler.GET("gptresponses", AI.class);
+        chatLogs.forEach(chat ->{
+            String prompt = chat.getPrompt();
+            Label promptLabel = new Label(prompt);
+            promptLabel.setWrapText(true);
+            promptLabel.wrapTextProperty();
+            promptLabel.getStyleClass().add("prompt");
+            chatBoxVbox.setAlignment(Pos.CENTER_RIGHT);
+            chatBoxVbox.getChildren().add(promptLabel);
+
+            String response = chat.getResponse();
+            Label responseLabel = new Label(chat.getTimestamp().format(dateAndTimeFormatter) + "\n" + response + " - AI Assistant");
+            responseLabel.setWrapText(true);
+            responseLabel.wrapTextProperty();
+            responseLabel.setPadding(new Insets(10));
+            responseLabel.getStyleClass().add("response");
+            HBox responseContainer = new HBox(responseLabel);
+            responseContainer.setAlignment(Pos.CENTER_LEFT);
+            chatBoxVbox.getChildren().add(responseContainer);
+
+            chatBoxVbox.heightProperty().addListener((obs, oldVal, newVal) -> {
+                messageScrollPane.setVvalue(1.0);
+            });
+        });
     }
 
     public void switchToTasks() {
