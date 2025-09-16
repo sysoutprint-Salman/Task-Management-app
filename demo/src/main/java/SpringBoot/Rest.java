@@ -1,6 +1,5 @@
 package SpringBoot;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -8,17 +7,8 @@ import static javafx.application.Application.launch;
 
 @SpringBootApplication
 @RestController
-public class Main {
+public class Rest {
 
-	public static void main(String[] args) {
-		//SpringApplication.run(Main.class, args);
-
-
-
-
-
-
-
-	}
+		//This class acts as the Rest controller which will handle JSON and launch SB.
 
 }
