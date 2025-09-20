@@ -1,8 +1,11 @@
 .main_stage{
     //-fx-background-color: white ;
+    -fx-background-color: #f3f3f3;
 }
 
-.main_notebook{}
+.main_notebook{
+
+}
 
 .scrollpane{
     -fx-background-color: transparent ;
@@ -12,11 +15,13 @@
 }
 .tabs_vbox{
     //-fx-border-color: gray ;
+   -fx-background-color: white;
+
 }
 
 /* -------Tab header-------*/
 .tabs_header .title{
-    -fx-background-color: white ;
+    -fx-background-color: #F2F2F2;
     //-fx-border-color: gray;
     -fx-border-color: transparent transparent gray transparent;
 }
@@ -27,7 +32,7 @@
     -fx-background-radius: 100;
 }
 .tabs_header .title .button:hover{
-    -fx-background-color: #CECECE;
+    -fx-background-color: #C8C7C7;
 }
 .tabs_header .title .menu-button{
     -fx-background-color: #F6F5F5;
@@ -50,15 +55,17 @@
     -fx-pref-height: 30;
     -fx-alignment: baseline-left;
     -fx-border-color: transparent transparent gray transparent;
-    -fx-background-color: #DDDCDC;
+    -fx-background-color: #e8e8e8;
 }
 
 .tab:selected, .tab:hover{
-   -fx-background-color: derive(#DDDCDC, 40%);
+   -fx-background-color: #d5d5d5;
 }
 
 /* -------Notepad-------*/
-.notepad_scroll_pane{}
+.notepad_scroll_pane .viewport{
+    -fx-background-color: white;
+}
 
 .notepad_scroll_pane .notebook_textarea{
     //-fx-border-color: gray;

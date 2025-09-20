@@ -22,6 +22,7 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     private Long id;
+    private Long userId;
     private String title;
     private LocalDate date;
     private String description;

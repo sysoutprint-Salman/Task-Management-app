@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -28,6 +29,8 @@ public class NotebookFX{
     private final ObjectMapper mapper = new ObjectMapper();
     private final HTTPHandler httpHandler = new HTTPHandler();
     protected final SwitchScenes handler = new SwitchScenes();
+    private AI_AssistantFX ai;
+    private TaskFX taskFX;
 
     public MenuItem gptMenuItem;
     public MenuItem mainTasks;
@@ -181,10 +184,16 @@ public class NotebookFX{
     } //TODO, work on having tabs be colored
 
 
-    public void switchToTasks() {
-        handler.switchToTasks(mainTasks);
+    public void switchToTasks(ActionEvent event) {
+        handler.switchScene(event, "tasks", consumer->{
+            taskFX = (TaskFX) consumer;
+            taskFX.getByPosted();
+        });
     }
-    public void switchToGPT() {
-        handler.switchToGPT(gptMenuItem);
+    public void switchToGPT(ActionEvent event) {
+        handler.switchScene(event, "AI", consumer->{
+            ai = (AI_AssistantFX) consumer;
+            ai.GETChatlogs();
+        });
     }
 }

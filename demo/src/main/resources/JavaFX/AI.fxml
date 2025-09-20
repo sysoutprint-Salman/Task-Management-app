@@ -1,22 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="550.0" prefWidth="729.0" styleClass="chatbox_stage" stylesheets="@../CSS/AI_Assistant.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.AI_AssistantFX">
+<AnchorPane prefHeight="550.0" prefWidth="730.0" styleClass="chatbox_stage" stylesheets="@../CSS/AI_Assistant.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.AI_AssistantFX">
    <children>
        <MenuBar prefHeight="26.0" prefWidth="600.0" style="-fx-background-color: white;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
            <menus>
-               <Menu mnemonicParsing="false" text="Tasks">
+               <Menu mnemonicParsing="false" text="Todo">
                    <items>
                        <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
                        <MenuItem mnemonicParsing="false" text="Close" />
@@ -24,7 +16,7 @@
                </Menu>
                <Menu mnemonicParsing="false" text="AI Chat">
                    <items>
-                       <MenuItem mnemonicParsing="false" text="Chat with AI assistant" />
+                  <MenuItem fx:id="viewNotebook1" mnemonicParsing="false" onAction="#switchToNotebook" text="Chat with AI assistant" />
                    </items>
                </Menu>
                <Menu mnemonicParsing="false" text="Notebook">

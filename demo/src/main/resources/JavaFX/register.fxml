@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="444.0" prefWidth="430.0" styleClass="body" stylesheets="@../CSS/LoginRegister.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.LogInFX">
+   <children>
+      <VBox alignment="CENTER" layoutX="90.0" layoutY="97.0" prefHeight="250.0" prefWidth="250.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER" prefHeight="30.0" prefWidth="102.0" text="Register">
+               <font>
+                  <Font name="Arial" size="24.0" />
+               </font>
+            </Label>
+            <TextField fx:id="createUsername" alignment="CENTER" pickOnBounds="false" prefHeight="26.0" prefWidth="245.0" promptText="Create username" />
+            <TextField fx:id="enterEmail" alignment="CENTER" pickOnBounds="false" prefHeight="26.0" prefWidth="245.0" promptText="Enter email">
+               <VBox.margin>
+                  <Insets top="-5.0" />
+               </VBox.margin>
+            </TextField>
+            <Button fx:id="createAccBut" alignment="CENTER" mnemonicParsing="false" onAction="#onRegister" prefHeight="26.0" prefWidth="254.0" text="Create Account">
+               <VBox.margin>
+                  <Insets bottom="-5.0" top="-5.0" />
+               </VBox.margin>
+            </Button>
+            <HBox alignment="CENTER" prefHeight="43.0" prefWidth="250.0">
+               <children>
+                  <Label fx:id="feedbackLabel" alignment="CENTER" text="Username must be 6 digits long and contain atleast 1 number." textAlignment="CENTER" wrapText="true" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <HBox layoutX="127.0" layoutY="347.0" prefHeight="24.0" prefWidth="174.0">
+         <children>
+            <Label fx:id="feedbackLabel1" alignment="CENTER" prefHeight="23.0" prefWidth="135.0" text="Have an account? Log in" textAlignment="CENTER" wrapText="true" />
+            <Hyperlink fx:id="loginHL" onAction="#switchToLogin" prefHeight="24.0" prefWidth="40.0" text="here!" />
+         </children>
+      </HBox>
+   </children>
+</AnchorPane>

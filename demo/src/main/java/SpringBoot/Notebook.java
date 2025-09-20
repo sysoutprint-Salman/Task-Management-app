@@ -14,11 +14,11 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true) //Jackson Annotation
 //Ignores properties that don't match fields in Java
-
 public class Notebook {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Long userId;
     private String tabTitle;
     @Column(columnDefinition = "TEXT")
     private String notebookText;

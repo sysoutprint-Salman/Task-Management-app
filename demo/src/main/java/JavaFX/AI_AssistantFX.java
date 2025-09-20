@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -39,6 +40,8 @@ public class AI_AssistantFX {
     private final ObjectMapper mapper = new ObjectMapper();
     public MenuItem mainTasks;
     public MenuItem viewNotebook;
+    private TaskFX taskFX;
+    private NotebookFX notebooks;
 
     public AI_AssistantFX(){}
 
@@ -151,11 +154,17 @@ public class AI_AssistantFX {
         });
     }
 
-    public void switchToTasks() {
-        handler.switchToTasks(mainTasks);
+    public void switchToTasks(ActionEvent event) {
+        handler.switchScene(event, "tasks", consumer->{
+            taskFX = (TaskFX) consumer;
+            taskFX.getByPosted();
+        });
     }
 
-    public void switchToNotebook() {
-        handler.switchToNotebook(viewNotebook);
+    public void switchToNotebook(ActionEvent event) {
+        handler.switchScene(event, "notebook", consumer->{
+            notebooks = (NotebookFX) consumer;
+            notebooks.GETNotebooks();
+        });
     }
 }

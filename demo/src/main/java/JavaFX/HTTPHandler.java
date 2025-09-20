@@ -60,8 +60,25 @@ public class HTTPHandler {
                 return List.of(singleObject);
             }
         }catch(IOException | InterruptedException e){
-            e.printStackTrace();
+            System.out.println("HTTP: An issue arose with GETTING (ignorable).");
         }   return Collections.emptyList();
+    }
+    public boolean GET(String path){ //Lazy solution
+        try {
+            String url = "http://localhost:8080/" + path ;
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url)).GET().build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return Boolean.parseBoolean(response.body().trim());
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("HTTP: Mismatch of inputs.");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.out.println("HTTP: Session has been interrupted.");
+        }
+        return false;
     }
     public void UPDATE(String JSON, String path) {
         try {

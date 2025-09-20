@@ -1,0 +1,28 @@
+/*Both*/
+.body{
+    -fx-background-color: #F6FAFF;
+}
+.text-field{
+    -fx-background-color: white;
+    -fx-border-color: #E3E3E3;
+}
+.button{
+    -fx-background-color: #E4E3E3;
+    -fx-border-color:gray;
+}
+.button:hover{
+    -fx-background-color: #C8C7C7;
+}
+
+/*Log-in*/
+.loginVbox{
+    -fx-background-color: ;
+}
+.notFoundMessage{
+    -fx-text-fill:red;
+    -fx-padding:-10 0 0 0;
+}
+
+/*Register*/
+.registerVbox{
+}

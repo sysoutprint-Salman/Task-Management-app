@@ -1,20 +1,23 @@
 package JavaFX;
 
-import SpringBoot.DeletedTask;
 import SpringBoot.Task;
+import SpringBoot.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -25,6 +28,7 @@ public class TaskFX{
     public VBox DTvbox;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yy");
     private final HTTPHandler httpHandler = new HTTPHandler();
+    public MenuButton sortButton;
     private Task.Status status;
     protected final SwitchScenes handler = new SwitchScenes();
     public Label taskLabel;
@@ -35,8 +39,12 @@ public class TaskFX{
     private final ObjectMapper mapper = new ObjectMapper();
     private enum Sort {A_Z, DUE_DATE, NEWEST}
     private Sort currentSortOption;
-    private ToggleGroup sortGroup = new ToggleGroup();
-    private List<Task> tasks = httpHandler.GET("tasks/" + status, Task.class);
+    private final ToggleGroup sortGroup = new ToggleGroup();
+    private LocalDateTime completedTaskTime;
+    private AI_AssistantFX ai;
+    private NotebookFX notebooks;
+    private UserPrefs userPrefs = new UserPrefs();
+    private User user = userPrefs.getSavedUser();
 
     public MenuItem gptMenuItem;
     public MenuItem viewNotebook;
@@ -55,13 +63,6 @@ public class TaskFX{
         DatePicker picker = new DatePicker();
         picker.setPromptText("mm/dd/yyyy");
 
-        /*RadioButton am = new RadioButton("AM");
-        RadioButton pm = new RadioButton("PM");
-        ToggleGroup toggleGroup = new ToggleGroup();
-        am.setToggleGroup(toggleGroup);
-        pm.setToggleGroup(toggleGroup);
-        comboBoxTimes().setPrefWidth(80);
-        comboBoxTimes().setEditable(true);*/
         picker.setPrefWidth(100);
 
         HBox timeHbox = new HBox(10, picker); //, comboBoxTimes(), am, pm);
@@ -77,8 +78,8 @@ public class TaskFX{
             String description = descriptionArea.getText();
             if (title != null && picker.getValue() != null && descriptionArea.getText() != null) {
                 String taskJson = String.format(
-                        "{\"title\":\"%s\", \"date\":\"%s\", \"description\":\"%s\", \"status\":\"POSTED\"}",
-                        title, date != null ? date.toString() : "", description
+                        "{\"title\":\"%s\", \"date\":\"%s\", \"description\":\"%s\", \"status\":\"POSTED\", \"userId\":\"%s\"}",
+                        title, date != null ? date.toString() : "", description, user.getUserId()
                 );
                 httpHandler.POST("tasks", taskJson);
             } else {return;}
@@ -88,7 +89,7 @@ public class TaskFX{
                 throw new RuntimeException(e);
             }
             mainTaskVbox.getChildren().clear();
-            Platform.runLater(this::GETTasks);
+            Platform.runLater(this::getByPosted);
             createTaskStage.close();
         });
 
@@ -100,176 +101,7 @@ public class TaskFX{
         createTaskStage.setScene(createTaskScene);
         createTaskStage.show();
     }
-    public void GETTasks() {
-        try {
-            status = Task.Status.POSTED;
-            mainTaskVbox.getChildren().clear();
-            List<Task> tasks = httpHandler.GET("tasks/" + status, Task.class);
-            tasks = sort(tasks,currentSortOption); //Default sort from
-            tasks.forEach((task -> {
-                TitledPane createdTaskPane = new TitledPane();
-                RadioButton radio = new RadioButton(); radio.setPrefWidth(30);
-                ToggleGroup group = new ToggleGroup();
-                radio.setToggleGroup(group);
-                Button dateButton  = new Button("Due: " + task.getDate().format(dateFormatter));
-                Label taskTitle = new Label(task.getTitle()); taskTitle.setPrefWidth(290);
-                TextArea descriptionArea = new TextArea(task.getDescription());
-                HBox taskHbox = new HBox();
 
-                taskHbox.getStyleClass().add("task_hbox");
-                taskHbox.getChildren().addAll(radio, taskTitle, dateButton);
-                taskHbox.setAlignment(Pos.CENTER);
-
-                dateButton.setOnAction(e -> {
-                });
-                //createdTaskPane.setText(task.getTitle());
-                createdTaskPane.setExpanded(false);
-                createdTaskPane.setPrefWidth(500);
-                createdTaskPane.setGraphic(taskHbox);
-                createdTaskPane.getStyleClass().add("task");
-
-
-                descriptionArea.setPrefHeight(50);
-                descriptionArea.setWrapText(true);
-                VBox taskContent = new VBox(new Label("Description:"), descriptionArea);
-                taskContent.setSpacing(8);
-                descriptionArea.maxWidthProperty().bind(taskContent.widthProperty());
-                descriptionArea.textProperty().addListener((obs, oldText, newText) -> {
-                    descriptionArea.setPrefHeight(
-                            descriptionArea.getFont().getSize() * (descriptionArea.getParagraphs().size() + 1) + 20
-                    );
-                });
-
-                createdTaskPane.setContent(taskContent);
-                createdTaskPane.setUserData(task.getId());
-                mainTaskVbox.getChildren().add(createdTaskPane);
-                taskLabel.setText("Tasks");
-                radio.setOnAction(f -> {
-                    if (radio.isSelected()){
-                        status = Task.Status.COMPLETED;
-                        String json = String.format("{\"status\":\"%s\"}", status);
-                        httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
-                        mainTaskVbox.getChildren().remove(createdTaskPane);
-                    }
-                });
-                descriptionArea.setOnKeyReleased(e->{
-                    autoUpdateDescription(descriptionArea,task.getId());
-                });
-                dateButton.setOnAction(e -> { editDate(task.getId());});
-                A_Z.setToggleGroup(sortGroup);
-                Due_Date.setToggleGroup(sortGroup);
-                Newest.setToggleGroup(sortGroup);
-
-                A_Z.setOnAction(e -> {
-                    this.currentSortOption = Sort.A_Z;
-                    GETTasks();
-                });
-                Newest.setOnAction(e ->{
-                    this.currentSortOption = Sort.NEWEST;
-                    GETTasks();
-                });
-                Due_Date.setOnAction(e ->{
-                    this.currentSortOption = Sort.DUE_DATE;
-                    GETTasks();
-                });
-
-                ContextMenu rightClickMenu = new ContextMenu();
-                MenuItem completeItem = new MenuItem("Complete");
-                MenuItem editItem = new MenuItem("Edit");
-                MenuItem deleteItem = new MenuItem("Delete");
-                rightClickMenu.getItems().addAll(completeItem, editItem, deleteItem);
-                createdTaskPane.setOnContextMenuRequested(e -> {
-                    rightClickMenu.show(createdTaskPane, e.getScreenX(), e.getScreenY());
-                    completeItem.setOnAction(f -> {
-                        status = Task.Status.COMPLETED;
-                        String json = String.format("{\"status\":\"%s\"}", status);
-                        httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
-                        mainTaskVbox.getChildren().remove(createdTaskPane);
-                    });
-                    editItem.setOnAction(f -> {
-                        editTask((Long) createdTaskPane.getUserData());
-                    });
-                    deleteItem.setOnAction(f -> {
-                        status = Task.Status.DELETED;
-                        String json = String.format("{\"status\":\"%s\"}", status);
-                        httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
-                        mainTaskVbox.getChildren().remove(createdTaskPane);
-                    });
-                });
-            }));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public void dummyTasks() {
-        try {
-            status = Task.Status.POSTED;
-            mainTaskVbox.getChildren().clear();
-
-            // Generate 5 dummy tasks for testing
-            for (int i = 1; i <= 5; i++) {
-                Task task = new Task();
-                task.setId((long) i);
-                task.setTitle("Dummy Task " + i);
-                task.setDescription("This is the description for dummy task number " + i + ".");
-                task.setDate(LocalDate.now().plusDays(i));
-                task.setStatus(Task.Status.POSTED);
-
-                TitledPane createdTaskPane = new TitledPane();
-                RadioButton radio = new RadioButton();
-                radio.setPrefWidth(30);
-                ToggleGroup group = new ToggleGroup();
-                radio.setToggleGroup(group);
-                DatePicker datePicker = new DatePicker(task.getDate());
-                Label taskTitle = new Label(task.getTitle());
-                taskTitle.setPrefWidth(290);
-                TextArea descriptionArea = new TextArea(task.getDescription());
-                HBox taskHbox = new HBox();
-
-                taskHbox.getStyleClass().add("task_hbox");
-                taskHbox.getChildren().addAll(radio, taskTitle, datePicker);
-                taskHbox.setAlignment(Pos.CENTER);
-
-                createdTaskPane.setExpanded(false);
-                createdTaskPane.setPrefWidth(500);
-                createdTaskPane.setGraphic(taskHbox);
-                createdTaskPane.getStyleClass().add("task");
-
-                descriptionArea.setPrefHeight(50);
-                descriptionArea.setWrapText(true);
-
-                // disable manual typing
-                datePicker.getEditor().setDisable(true);
-
-                VBox taskContent = new VBox(new Label("Description:"), descriptionArea);
-                taskContent.setSpacing(8);
-                descriptionArea.maxWidthProperty().bind(taskContent.widthProperty());
-                descriptionArea.textProperty().addListener((obs, oldText, newText) -> {
-                    descriptionArea.setPrefHeight(
-                            descriptionArea.getFont().getSize() * (descriptionArea.getParagraphs().size() + 1) + 20
-                    );
-                });
-
-                createdTaskPane.setContent(taskContent);
-                createdTaskPane.setUserData(task.getId());
-                mainTaskVbox.getChildren().add(createdTaskPane);
-                taskLabel.setText("Tasks");
-
-                // Right click menu (no http calls, just UI testing)
-                ContextMenu rightClickMenu = new ContextMenu();
-                MenuItem completeItem = new MenuItem("Complete");
-                MenuItem editItem = new MenuItem("Edit");
-                MenuItem deleteItem = new MenuItem("Delete");
-                rightClickMenu.getItems().addAll(completeItem, editItem, deleteItem);
-                createdTaskPane.setOnContextMenuRequested(e -> {
-                    rightClickMenu.show(createdTaskPane, e.getScreenX(), e.getScreenY());
-                });
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
     public void editTask(Long id) {
         Stage editStage = new Stage();
         editStage.setTitle("Edit Task");
@@ -306,7 +138,7 @@ public class TaskFX{
                 throw new RuntimeException(e);
             }
             mainTaskVbox.getChildren().clear();
-            Platform.runLater(this::GETTasks);
+            Platform.runLater(this::getByPosted);
             editStage.close();
         });
 
@@ -337,7 +169,7 @@ public class TaskFX{
             if (date != null) {httpHandler.UPDATE(updatedJson,"tasks/" + id + "/modular?section=date");}
             else {return;}
             mainTaskVbox.getChildren().clear();
-            Platform.runLater(this::GETTasks);
+            Platform.runLater(this::getByPosted);
             editStage.close();
         });
 
@@ -348,57 +180,6 @@ public class TaskFX{
         editStage.setScene(formScene);
         editStage.show();
     }
-    public void GETDeletedTasks() {
-        try {
-            status = Task.Status.DELETED;
-            mainTaskVbox.getChildren().clear();
-            taskLabel.setText("Deleted Tasks");
-            createTaskButton.setVisible(false);
-            List<Task> deletedTasks = httpHandler.GET("tasks/" + status, Task.class);
-
-            for (Task dTask : deletedTasks) {
-                TitledPane deletedTaskPane = new TitledPane();
-                Label taskTitle = new Label("Deleted: " +dTask.getTitle()); taskTitle.setPrefWidth(290);
-                TextArea descriptionArea = new TextArea(dTask.getDescription());
-                HBox taskHbox = new HBox();
-
-                taskHbox.getStyleClass().add("task_hbox");
-                taskHbox.getChildren().addAll(taskTitle);
-                taskHbox.setAlignment(Pos.CENTER);
-
-                VBox content = new VBox(new Label("Due: " + dTask.getDate().format(dateFormatter)),
-                        descriptionArea);
-                content.setAlignment(Pos.TOP_LEFT);
-                descriptionArea.maxWidthProperty().bind(content.widthProperty());
-                descriptionArea.setDisable(true);
-                descriptionArea.setWrapText(true);
-                descriptionArea.setPrefHeight(50);
-
-                deletedTaskPane.setExpanded(false);
-                deletedTaskPane.setPrefWidth(500);
-                deletedTaskPane.setContent(content);
-                deletedTaskPane.setUserData(dTask.getId());
-                deletedTaskPane.getStyleClass().add("task");
-                deletedTaskPane.setGraphic(taskHbox);
-                mainTaskVbox.getChildren().add(deletedTaskPane);
-
-                ContextMenu rightClickMenu = new ContextMenu();
-                MenuItem recoverItem = new MenuItem("Recover");
-                rightClickMenu.getItems().add(recoverItem);
-                recoverItem.setOnAction(f -> {
-                    status = Task.Status.POSTED;
-                    String json = String.format("{\"status\":\"%s\"}", status);
-                    recoverItem.setDisable(true);
-                    httpHandler.UPDATE(json,"tasks/" + dTask.getId() + "/modular?section=status");
-                    mainTaskVbox.getChildren().remove(deletedTaskPane);
-                });
-                deletedTaskPane.setContextMenu(rightClickMenu);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public void GETCompletedTasks(){}
     public void autoUpdateDescription(TextArea notepadArea, Long taskId){
             if (isTaskScheduled) {
                 timer.cancel();
@@ -446,12 +227,158 @@ public class TaskFX{
         }
         return Collections.emptyList();
     }
+    public void sortTodo(){
+        A_Z.setToggleGroup(sortGroup);
+        Due_Date.setToggleGroup(sortGroup);
+        Newest.setToggleGroup(sortGroup);
 
-    public void switchToGPT() {
-        handler.switchToGPT(gptMenuItem);
+        A_Z.setOnAction(e -> {
+            this.currentSortOption = Sort.A_Z;
+            getByPosted();
+        });
+        Newest.setOnAction(e ->{
+            this.currentSortOption = Sort.NEWEST;
+            getByPosted();
+        });
+        Due_Date.setOnAction(e ->{
+            this.currentSortOption = Sort.DUE_DATE;
+            getByPosted();
+        });
     }
-    public void switchToNotebook() {
-        handler.switchToNotebook(viewNotebook);
-    }
+    public void todo(Task.Status status){
+        try{
+            mainTaskVbox.getChildren().clear();
+            List<Task> tasks = httpHandler.GET("tasks/" + status, Task.class);
+            tasks = sort(tasks,currentSortOption); //TODO: Use preference
+            tasks.forEach(task -> {
+                TitledPane taskCard = new TitledPane();
+                RadioButton radio = new RadioButton(); radio.setPrefWidth(30);
+                ToggleGroup group = new ToggleGroup();
+                radio.setToggleGroup(group);
+                Button dateButton  = new Button("Due: " + task.getDate().format(dateFormatter));
+                Label taskTitle = new Label(task.getTitle()); taskTitle.setPrefWidth(Region.USE_COMPUTED_SIZE);
+                TextArea descriptionArea = new TextArea(task.getDescription());
+                HBox taskHbox = new HBox(10);
 
+                taskHbox.getStyleClass().add("task_hbox");
+                taskHbox.getChildren().addAll(radio, taskTitle, dateButton);
+                taskHbox.setAlignment(Pos.CENTER);
+                taskHbox.prefWidthProperty().bind(taskCard.widthProperty().subtract(35));
+                HBox.setHgrow(taskTitle, Priority.ALWAYS);
+                taskTitle.setMaxWidth(Double.MAX_VALUE);
+
+
+                taskCard.setExpanded(false);
+                taskCard.setGraphic(taskHbox);
+                taskCard.getStyleClass().add("task");
+
+                descriptionArea.setPrefHeight(50);
+                descriptionArea.setWrapText(true);
+
+                VBox taskContent = new VBox();
+                taskContent.setSpacing(8);
+                taskCard.setContent(taskContent);
+                descriptionArea.maxWidthProperty().bind(taskContent.widthProperty());
+
+                sortTodo();
+                if (status.equals(Task.Status.POSTED)){
+                    taskLabel.setText("TODO");
+                    sortButton.setVisible(true);
+                    createTaskButton.setVisible(true);
+                    taskContent.getChildren().addAll(new Label("Description:"), descriptionArea);
+                    descriptionArea.setOnKeyReleased(e->{
+                        autoUpdateDescription(descriptionArea,task.getId());
+                    });
+                    dateButton.setOnAction(e -> { editDate(task.getId());});
+
+                    ContextMenu rightClickMenu = new ContextMenu();
+                    MenuItem completeItem = new MenuItem("Complete");
+                    MenuItem editItem = new MenuItem("Edit");
+                    MenuItem deleteItem = new MenuItem("Delete");
+                    rightClickMenu.getItems().addAll(completeItem, editItem, deleteItem);
+                    taskCard.setOnContextMenuRequested(e -> {
+                        rightClickMenu.show(taskCard, e.getScreenX(), e.getScreenY());
+                        completeItem.setOnAction(f -> {
+                            Task.Status saveStatus = Task.Status.COMPLETED;
+                            String json = String.format("{\"status\":\"%s\"}", saveStatus);
+                            httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                            this.completedTaskTime = LocalDateTime.now();
+                            mainTaskVbox.getChildren().remove(taskCard);
+                        });
+                        editItem.setOnAction(f -> {
+                            editTask((Long) taskCard.getUserData());
+                        });
+                        deleteItem.setOnAction(f -> {
+                            Task.Status saveStatus = Task.Status.DELETED;
+                            String json = String.format("{\"status\":\"%s\"}", saveStatus);
+                            httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                            mainTaskVbox.getChildren().remove(taskCard);
+                        });
+                    });
+                }
+
+                if (status.equals(Task.Status.DELETED)){
+                    taskLabel.setText("Deleted");
+                    sortButton.setVisible(false);
+                    createTaskButton.setVisible(false);
+                    taskHbox.getChildren().remove(radio);
+                    taskTitle.setText("Deleted: " + task.getTitle());
+                    descriptionArea.setDisable(true);
+                    taskContent.getChildren().addAll(
+                            new Label("Due: " + task.getDate().format(dateFormatter),
+                                    descriptionArea));
+
+                    ContextMenu rightClickMenu = new ContextMenu();
+                    MenuItem recoverItem = new MenuItem("Recover");
+                    rightClickMenu.getItems().add(recoverItem);
+                    recoverItem.setOnAction(f -> {
+                        Task.Status saveStatus = Task.Status.POSTED;
+                        String json = String.format("{\"status\":\"%s\"}", saveStatus);
+                        recoverItem.setDisable(true);
+                        httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                        mainTaskVbox.getChildren().remove(taskCard);
+                    });
+                    taskCard.setContextMenu(rightClickMenu);
+                }
+
+                if (status.equals(Task.Status.COMPLETED)){
+                    taskLabel.setText("Completed");
+                    sortButton.setVisible(false);
+                    createTaskButton.setVisible(false);
+                    dateButton.setText("Completed");
+                    taskHbox.getChildren().remove(radio);
+                    descriptionArea.setText(task.getDescription());
+                    descriptionArea.setDisable(true);
+                    taskContent.getChildren().add(descriptionArea);
+                }
+
+                taskCard.setUserData(task.getId());
+                mainTaskVbox.getChildren().add(taskCard);
+            });
+        }catch (Exception e){
+            System.err.println("Error occurred trying to load tasks.");
+        }
+    }
+    public void getByPosted(){
+        todo(Task.Status.POSTED);
+    }
+    public void getByDeleted(){
+        todo(Task.Status.DELETED);
+    }
+    public void getByCompleted(){
+        todo(Task.Status.COMPLETED);
+    }
+    public void switchToGPT(ActionEvent event) {
+        handler.switchScene(event, "AI", consumer->{
+            ai = (AI_AssistantFX) consumer;
+            ai.GETChatlogs();
+        });
+
+    }
+    public void switchToNotebook(ActionEvent event) {
+        handler.switchScene(event, "notebook", consumer->{
+            notebooks = (NotebookFX) consumer;
+            notebooks.GETNotebooks();
+        });
+    }
 }

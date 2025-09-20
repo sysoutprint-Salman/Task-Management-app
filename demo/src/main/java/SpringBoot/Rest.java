@@ -8,7 +8,5 @@ import static javafx.application.Application.launch;
 @SpringBootApplication
 @RestController
 public class Rest {
-
-		//This class acts as the Rest controller which will handle JSON and launch SB.
-
+    //This class acts as the Rest controller which will handle JSON and launch SB.
 }
