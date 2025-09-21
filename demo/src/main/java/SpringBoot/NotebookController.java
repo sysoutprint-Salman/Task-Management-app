@@ -33,6 +33,10 @@ public class NotebookController {
         else {System.out.println("SpringBoot: Notebook not found. Returning empty Notebook.");}
         return new Notebook();
     }
+    @GetMapping("/filter")
+    public List<Notebook> findByUserId(@RequestParam Long userId){
+        return notebookService.findByUserId(userId);
+    }
 
     @PostMapping
     public ResponseEntity<?> postNotebook(@RequestBody Notebook notebook){
@@ -80,8 +84,11 @@ private final NotebookRepository notebookRepository;
     public void deleteNotebook(Long id){
         notebookRepository.deleteById(id);
     }
+    public List<Notebook> findByUserId(Long userId){
+        return notebookRepository.findByUserId(userId);
+    }
 }
 @Repository
 interface NotebookRepository extends JpaRepository<Notebook, Long> {
-
+    List<Notebook> findByUserId(Long userId);
 }

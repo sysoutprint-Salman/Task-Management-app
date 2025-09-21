@@ -1,6 +1,7 @@
 package JavaFX;
 
 import SpringBoot.AI;
+import SpringBoot.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
@@ -42,6 +43,8 @@ public class AI_AssistantFX {
     public MenuItem viewNotebook;
     private TaskFX taskFX;
     private NotebookFX notebooks;
+    private UserPrefs userPrefs = new UserPrefs();
+    private User user = userPrefs.getSavedUser();
 
     public AI_AssistantFX(){}
 
@@ -118,6 +121,7 @@ public class AI_AssistantFX {
                     jsonPayload.put("prompt",prompt);
                     jsonPayload.put("response",contentString);
                     jsonPayload.put("timestamp",timestampNow.toString());
+                    jsonPayload.put("userId",user.getUserId());
                     String refinedJson = mapper.writeValueAsString(jsonPayload);
                     httpHandler.POST("gptresponses",refinedJson);
                 } catch (JsonProcessingException ex) {
@@ -128,7 +132,7 @@ public class AI_AssistantFX {
         }
     }
     public void GETChatlogs(){
-        List<AI> chatLogs = httpHandler.GET("gptresponses", AI.class);
+        List<AI> chatLogs = httpHandler.GET("gptresponses/filter?userId=" + user.getUserId(), AI.class);
         chatLogs.forEach(chat ->{
             String prompt = chat.getPrompt();
             Label promptLabel = new Label(prompt);

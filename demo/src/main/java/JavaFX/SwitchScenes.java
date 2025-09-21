@@ -22,7 +22,6 @@ import java.util.function.Consumer;
 
 
 public class SwitchScenes {
-    public enum Sort {A_Z, DUE_DATE, NEWEST, IMPORTANCE}
 
     public SwitchScenes(){}
 
@@ -70,6 +69,7 @@ public class SwitchScenes {
             Parent root = loader.load();
             Scene scene = new Scene(root);
             Stage stage = new Stage();
+            stage.setTitle("Task Management App");
             stage.setScene(scene);
             stage.centerOnScreen();
             stage.show();
@@ -84,6 +84,7 @@ public class SwitchScenes {
                 Parent root = loader.load();
                 TaskFX FXHandler = loader.getController();
                 Scene scene = new Scene(root);
+                curStage.setTitle("Task Management App");
                 curStage.setScene(scene);
                 curStage.centerOnScreen();
                 curStage.show();
@@ -107,28 +108,6 @@ public class SwitchScenes {
         } catch (IOException | RuntimeException ex) {
             System.out.println("Something's up with the scene.");
         }
-    }
-    public <T> List<T> sort(List<T> list, Sort sortOption ){
-        if (list.isEmpty()) return list;
-        if (sortOption == null) return list;
-
-        Object typeIdentity = list.get(0);
-        if (typeIdentity instanceof Task){
-            List<Task> taskList = (List<Task>) list;
-            switch (sortOption){
-                case A_Z:
-                    taskList.sort(Comparator.comparing(Task::getTitle));
-                    break;
-                case DUE_DATE:
-                    taskList.sort(Comparator.comparing(Task::getDate));
-                    break;
-                case NEWEST:
-                    taskList.sort(Comparator.comparing(Task::getCreationDate).reversed());
-                    break;
-            }
-            return (List<T>) taskList;
-        }
-        return Collections.emptyList();
     }
 
 }

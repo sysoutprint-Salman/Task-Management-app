@@ -21,13 +21,17 @@ public class TaskController {
     private final DeletedTaskService deletedTaskService;
     private final TaskRepository taskRepository;
 
-    @GetMapping //GET request
+    @GetMapping("/{id}") //GET request
     public List<Task> getAllTasks() {
         return taskService.getAllTasks();
     }
     @GetMapping("/{status}")
     public List<Task> findByStatus(@PathVariable Task.Status status){
         return taskService.findByStatus(status);
+    }
+    @GetMapping("/filter")
+    public List<Task> findByIdAndStatus(@RequestParam Long userId, @RequestParam Task.Status status){
+        return taskService.findByIdAndStatus(userId, status);
     }
     @PostMapping //POST request
     public Task createTask(@RequestBody Task task) {
@@ -113,7 +117,10 @@ class TaskService {
     public Task getTaskById(Long id){
         return taskRepository.findById(id).orElseThrow(() -> new RuntimeException("SpringBoot: Task not found with id: " + id));
     }
+    public List<Task> findByIdAndStatus(Long userId, Task.Status status){
+        return taskRepository.findByUserIdAndStatus(userId, status);
 
+    }
     public Task createTask(Task task) {
         return taskRepository.save(task);
     }
@@ -125,4 +132,5 @@ class TaskService {
 interface TaskRepository extends JpaRepository<Task, Long> { //Repo uses Task type & Long for ID
 
     List<Task> findByStatus(Task.Status status);
+    List<Task> findByUserIdAndStatus(Long userId, Task.Status status);
 }

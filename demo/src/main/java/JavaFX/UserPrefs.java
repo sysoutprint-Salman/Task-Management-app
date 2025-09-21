@@ -54,6 +54,12 @@ public class UserPrefs {
         }
     }
 
+    public void saveSortOption(TaskFX.Sort sortOption){
+        userPreferences.put("sortOption",sortOption.toString());
+    }
+    public String getSortOption(){
+        return userPreferences.get("sortOption",null);
+    }
     public String getStoredUsername() {
         return userPreferences.get("username",null);
     }

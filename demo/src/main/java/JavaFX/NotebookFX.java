@@ -1,6 +1,7 @@
 package JavaFX;
 
 import SpringBoot.Notebook;
+import SpringBoot.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -31,6 +32,8 @@ public class NotebookFX{
     protected final SwitchScenes handler = new SwitchScenes();
     private AI_AssistantFX ai;
     private TaskFX taskFX;
+    private UserPrefs userPrefs = new UserPrefs();
+    private User user = userPrefs.getSavedUser();
 
     public MenuItem gptMenuItem;
     public MenuItem mainTasks;
@@ -46,7 +49,7 @@ public class NotebookFX{
         createTabButton.setOnAction(e ->{
             String title = newTabTitle.getText();
             String notebookJson = String.format(
-                    "{\"tabTitle\":\"%s\"}", title);
+                    "{\"tabTitle\":\"%s\", \"userId\":\"%s\"}", title, user.getUserId());
             httpHandler.POST("notebooks", notebookJson);
             newTabStage.close();
             tabsVbox.getChildren().clear();
@@ -85,7 +88,7 @@ public class NotebookFX{
     }
     public void GETNotebooks(){
         try {
-            List<Notebook> notebooks = httpHandler.GET("notebooks",Notebook.class);
+            List<Notebook> notebooks = httpHandler.GET("notebooks/filter?userId=" + user.getUserId(),Notebook.class);
             notebookScrollPane.setContent(notepadArea);
             notepadArea.setVisible(false);
             notepadArea.setWrapText(true);

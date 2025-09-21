@@ -10,6 +10,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +18,7 @@ import javax.swing.*;
 import java.io.IOException;
 
 
-@Slf4j
+@Data
 public class LogInFX {
     private final SwitchScenes switchScenes = new SwitchScenes();
     private final HTTPHandler httpHandler = new HTTPHandler();
@@ -57,11 +58,12 @@ public class LogInFX {
                         "&email=" + emailOrUsernameCredential
         );
         if (existingUser){
+            userPrefs.saveToPref(emailOrUsernameCredential); //Saves username in registry for quick login
             switchScenes.switchScene(event, "tasks",controller ->{
                 taskFX = (TaskFX) controller;
+                taskFX.setUser(userPrefs.getSavedUser());
                 taskFX.getByPosted();}
             );
-            userPrefs.saveToPref(emailOrUsernameCredential); //Saves username in registry for quick login
         } else {
             Label notFoundMessage = new Label("Username or email not found, try again.");
             notFoundMessage.getStyleClass().add("notFoundMessage");
@@ -80,6 +82,7 @@ public class LogInFX {
         createUsername.clear(); enterEmail.clear();
         switchScenes.switchScene(event, "tasks",controller ->{
             taskFX = (TaskFX) controller;
+            taskFX.setUser(userPrefs.getSavedUser());
             taskFX.getByPosted();}
         );
     }

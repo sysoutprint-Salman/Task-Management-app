@@ -15,12 +15,14 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import lombok.Data;
+import org.jetbrains.annotations.UnknownNullability;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-
+@Data
 public class TaskFX{
     @FXML
     public VBox mainTaskVbox;
@@ -37,7 +39,7 @@ public class TaskFX{
     private boolean isTaskScheduled = false;
     private final int DELAY = 1000;
     private final ObjectMapper mapper = new ObjectMapper();
-    private enum Sort {A_Z, DUE_DATE, NEWEST}
+    public enum Sort {A_Z, DUE_DATE, NEWEST}
     private Sort currentSortOption;
     private final ToggleGroup sortGroup = new ToggleGroup();
     private LocalDateTime completedTaskTime;
@@ -45,6 +47,7 @@ public class TaskFX{
     private NotebookFX notebooks;
     private UserPrefs userPrefs = new UserPrefs();
     private User user = userPrefs.getSavedUser();
+
 
     public MenuItem gptMenuItem;
     public MenuItem viewNotebook;
@@ -234,6 +237,7 @@ public class TaskFX{
 
         A_Z.setOnAction(e -> {
             this.currentSortOption = Sort.A_Z;
+            userPrefs.saveSortOption(currentSortOption);
             getByPosted();
         });
         Newest.setOnAction(e ->{
@@ -245,11 +249,22 @@ public class TaskFX{
             getByPosted();
         });
     }
+    public TaskFX.Sort sortConvertor( String sortOption){
+        switch (sortOption){
+            case "A_Z":
+                return Sort.A_Z;
+            case "NEWEST":
+                return Sort.NEWEST;
+            case "DUE_DATE":
+                return Sort.DUE_DATE;
+        }
+        return null;
+    }
     public void todo(Task.Status status){
         try{
             mainTaskVbox.getChildren().clear();
-            List<Task> tasks = httpHandler.GET("tasks/" + status, Task.class);
-            tasks = sort(tasks,currentSortOption); //TODO: Use preference
+            List<Task> tasks = httpHandler.GET("tasks/filter?userId=" + user.getUserId()+ "&status=" + status, Task.class);
+            tasks = sort(tasks, currentSortOption); //TODO: Use preference
             tasks.forEach(task -> {
                 TitledPane taskCard = new TitledPane();
                 RadioButton radio = new RadioButton(); radio.setPrefWidth(30);
@@ -373,7 +388,6 @@ public class TaskFX{
             ai = (AI_AssistantFX) consumer;
             ai.GETChatlogs();
         });
-
     }
     public void switchToNotebook(ActionEvent event) {
         handler.switchScene(event, "notebook", consumer->{

@@ -23,7 +23,10 @@ public class AIcontroller {
     public AI createResponse(@RequestBody AI response) {
         return gptService.createResponse(response);
     }
-
+    @GetMapping("filter")
+    public List<AI> findByUserId(@RequestParam Long userId){
+        return gptService.findByUserId(userId);
+    }
 }
 @Service
 @RequiredArgsConstructor
@@ -36,8 +39,11 @@ class AIservice {
     public AI createResponse(AI response){
         return gptRepository.save(response);
     }
-
+    public List<AI> findByUserId(Long userId){
+        return gptRepository.findByUserId(userId);
+    }
 }
 @Repository
 interface AIrepository extends JpaRepository<AI, Long> {
+    List<AI> findByUserId(Long userId);
 }
